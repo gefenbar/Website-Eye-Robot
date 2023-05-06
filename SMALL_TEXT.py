@@ -5,11 +5,9 @@ import numpy as np
 
 def detect_small_text(img_path, save_path):
     # The minimum height of a region to be considered as containing small text
-    MIN_HEIGHT = 10  # adjust based on image resolution
+    MIN_HEIGHT = 1  # adjust based on image resolution
     # The maximum height of a region to be considered as containing small text
-    MAX_HEIGHT = 50  # adjust based on image resolution
-    # The threshold for the difference between the mean color and the peak color of a region to be considered as having low color contrast
-    COLOR_DIFF_THRESHOLD = 60  # adjust based on chosen color space
+    MAX_HEIGHT = 4  # adjust based on image resolution
 
     # Load the image
     img = cv2.imread(img_path)
@@ -56,7 +54,7 @@ def detect_small_text(img_path, save_path):
         text = pytesseract.image_to_string(cropped_img, lang='eng')
         if not text.strip():
             found_issue = True
-            cv2.rectangle(img_copy, (x, y), (x+w, y+h), (0, 0, 123), 2)
+            cv2.rectangle(img_copy, (x, y), (x+w, y+h), (0, 255, 127), 2)
     if found_issue:
         cv2.imwrite(save_path, img_copy)
         return save_path
