@@ -15,7 +15,7 @@ import requests
 import threading
 import json
 import pandas as pd
-from new import color_contrast
+from SCANNER_COLOR_CONTRAST import color_contrast
 # from PREVIOUS_COLOR_CONTRAST import color_contrast
 import cv2
 app = Flask(__name__)
@@ -126,13 +126,17 @@ def index():
                             scroll_position = 0
                             section_height = 800
 
+                           # Set window size to 1920x1080 pixels
+                            driver.set_window_size(1920, 1080)
+
                             # Capture screenshots of each section of the page
                             while scroll_position < page_height:
+                                driver.execute_script(
+                                    f"window.scrollTo(0, {scroll_position})")
+                                time.sleep(1)
                                 driver.save_screenshot(
                                     os.path.join(
-                                        folder_name,
-                                        f"{i}_{len(visited_pages_resolution)}_{scroll_position}.png",
-                                    )
+                                        folder_name, f"{i}_{len(visited_pages_resolution)}.png")
                                 )
                                 scroll_position += section_height
                                 driver.execute_script(
@@ -223,7 +227,7 @@ def index():
                     all_html = '\n'.join(html_list)
                 else:
                     # i--> to make the "no issues" message appear only if there are no more images generated
-                        all_html = f"""
+                    all_html = f"""
                                         <div class="report-card">
                                             <div class="card-header">
                                                 <h3> No issues found</h3>
@@ -240,4 +244,4 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run(port=3056)
+    app.run(port=3006)

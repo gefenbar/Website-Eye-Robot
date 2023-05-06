@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import re
 
-matplotlib.use('agg')
+# matplotlib.use('agg')
 
 
 def color_contrast(img_path, save_path):
@@ -16,28 +16,39 @@ def color_contrast(img_path, save_path):
     MIN_ASPECT_RATIO = 0.1  # 0.1-10
     MAX_ASPECT_RATIO = 100  # 10-1000
     # The minimum ratio of contour area to convex hull area of a contour to be considered as a region of interest
-    MIN_SOLIDITY = 0.7  # 0-1
+    MIN_SOLIDITY = 0  # 0-1
     # The threshold for the difference between the mean color and the peak color of a region to be considered as having low color contrast
-    COLOR_DIFF_THRESHOLD = 80  # adjust based on chosen color space
+    COLOR_DIFF_THRESHOLD = 90  # adjust based on chosen color space
 
+    # Load the image
     img = cv2.imread(img_path)
+
     # Convert the image to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # Apply CLAHE to enhance contrast
+
+    # Enhance contrast using CLAHE
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     gray = clahe.apply(gray)
+
     # Apply noise removal to the grayscale image using Gaussian blur
-    gray = cv2.GaussianBlur(gray, (3, 3), 0)
+    gray = cv2.GaussianBlur(gray, (1, 1), 0)
 
     # Apply adaptive thresholding to the grayscale image
     thresh = cv2.adaptiveThreshold(
         gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
 
+    # Define the kernel size and shape for morphological operations
     kernel_size = 11
     kernel_shape = cv2.MORPH_ELLIPSE
+
+    # Create the kernel for morphological operations
     kernel = cv2.getStructuringElement(
         kernel_shape, (kernel_size, kernel_size))
+
+    # Apply morphological closing operation
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+
+    # Apply morphological opening operation
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
 
     # Find contours in the thresholded image
@@ -84,7 +95,7 @@ def color_contrast(img_path, save_path):
             if color_diff < COLOR_DIFF_THRESHOLD:
                 found_issue = True
                 # Draw a red rectangle around the region of interest
-                cv2.rectangle(img_copy, (x, y), (x+w, y+h), (0, 0, 255), 2)
+                cv2.rectangle(img_copy, (x, y), (x+w, y+h), (128, 0, 128), 2)
 
     if found_issue:
         cv2.imwrite(save_path, img_copy)
@@ -95,4 +106,4 @@ def color_contrast(img_path, save_path):
 
 
 color_contrast(
-    'test3.png', 'current_results.png')
+    '/home/gefen/Website-Eye-Robot/image_62.png', 'current_results.png')
