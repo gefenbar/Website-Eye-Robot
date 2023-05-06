@@ -15,7 +15,8 @@ import requests
 import threading
 import json
 import pandas as pd
-from SCANNER_COLOR_CONTRAST import color_contrast
+from COMPLETED.SCANNER_COLOR_CONTRAST import color_contrast
+from SMALL_TEXT import detect_small_text
 # from PREVIOUS_COLOR_CONTRAST import color_contrast
 import cv2
 app = Flask(__name__)
@@ -126,9 +127,6 @@ def index():
                             scroll_position = 0
                             section_height = 800
 
-                           # Set window size to 1920x1080 pixels
-                            driver.set_window_size(1920, 1080)
-
                             # Capture screenshots of each section of the page
                             while scroll_position < page_height:
                                 driver.execute_script(
@@ -198,41 +196,72 @@ def index():
 
                         save_path = os.path.join(
                             result_folder_name, filename)
-                        result = color_contrast(img_path, save_path)
-                        # check if there are any detections
-                        if result != "":
-                            issue_name = "Color Contrast"  # move this var to the color contrast code
-                            issue_resolution = result_folder_name.replace(
-                                "results_", '')
-                            issue_image = result
-                            # issue_image = f"{result_folder_name}/{filename}"
-                            page_url = "https://placeholder.com"
-                            print(f"resolution:{issue_resolution}")
-                            # print(f"imagepath:{issue_image}")
-                            html = f"""
-                                    <div class="report-card">
-                                        <div class="card-header">
-                                            <h3>{issue_name}</h3>
-                                            <p> page url: {page_url}</p>
-                                            <p>resolution: {issue_resolution.replace('/home/gefen/Website-Eye-Robot/', '')}</p>
+                        # Run color contrast function
+                        color_contrast_result = color_contrast(
+                            img_path, save_path)
+                        # Run small text detection function
+                        small_text_result = detect_small_text(
+                            img_path, save_path)
+
+                        # Check if there are any color contrast or small text detection issues
+                        if color_contrast_result != "" or small_text_result != "":
+                            if color_contrast_result != "":
+                                issue_name = "Color Contrast"  
+                                issue_resolution = result_folder_name.replace(
+                                    "results_", '')
+                                issue_image = color_contrast_result
+                                page_url = "https://placeholder.com"
+                                print(f"resolution:{issue_resolution}")
+                                html = f"""
+                                        <div class="report-card">
+                                            <div class="card-header">
+                                                <h3>{issue_name}</h3>
+                                                <p> page url: {page_url}</p>
+                                                <p>resolution: {issue_resolution.replace('/home/gefen/Website-Eye-Robot/', '')}</p>
+                                            </div>
+                                            <div class="card-screenshot">
+                                                <img src='{issue_image.replace('home/gefen/Website-Eye-Robot/', '')}' alt="Screenshot of Issue #{issue_name}">
+                                            </div>
                                         </div>
-                                        <div class="card-screenshot">
-                                            <img src='{issue_image.replace('home/gefen/Website-Eye-Robot/', '')}' alt="Screenshot of Issue #{issue_name}">
+                                    """
+                                html_list.append(html)
+                                num_of_screenshots += 1
+
+                            if small_text_result is not None and small_text_result != "":
+
+                                issue_name = "Small Text"
+                                issue_resolution = result_folder_name.replace(
+                                    "results_", '')
+                                issue_image = small_text_result
+                                page_url = "https://placeholder.com"
+                                print(f"resolution:{issue_resolution}")
+                                html = f"""
+                                        <div class="report-card">
+                                            <div class="card-header">
+                                                <h3>{issue_name}</h3>
+                                                <p> page url: {page_url}</p>
+                                                <p>resolution: {issue_resolution.replace('/home/gefen/Website-Eye-Robot/', '')}</p>
+                                            </div>
+                                            <div class="card-screenshot">
+                                                <img src='{issue_image.replace('home/gefen/Website-Eye-Robot/', '')}' alt="Screenshot of Issue #{issue_name}">
+                                            </div>
                                         </div>
-                                    </div>
-                                """
-                            html_list.append(html)
-                            num_of_screenshots += 1
+                                    """
+                                html_list.append(html)
+                                num_of_screenshots += 1
+
                 if num_of_screenshots > 0:
                     all_html = '\n'.join(html_list)
                 else:
                     # i--> to make the "no issues" message appear only if there are no more images generated
                     all_html = f"""
-                                        <div class="report-card">
-                                            <div class="card-header">
-                                                <h3> No issues found</h3>
-                                        </div>
-                                    """
+                        <div class="report-card">
+                            <div class="card-header">
+                                <h3> No issues found</h3>
+                            </div>
+                        </div>
+                    """
+
                 data = {}
                 data[url] = all_html
                 with open('data.json', 'w', encoding='utf-8') as f:
@@ -244,4 +273,4 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run(port=3006)
+    app.run(port=3034)

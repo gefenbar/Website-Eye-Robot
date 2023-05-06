@@ -15,7 +15,7 @@ import requests
 import threading
 import json
 import pandas as pd
-from IN_DEVELOPEMENT_COLOR_CONTRAST import color_contrast
+from COMPLETED.SCANNER_COLOR_CONTRAST import color_contrast
 # from PREVIOUS_COLOR_CONTRAST import color_contrast
 import cv2
 app = Flask(__name__)
@@ -197,7 +197,7 @@ def index():
                         result = color_contrast(img_path, save_path)
                         # check if there are any detections
                         if result != "":
-                            issue_name = "Color Contrast"  # move this var to the color contrast code
+                            issue_name = "Color Contrast"  # should be dynamic instead
                             issue_resolution = result_folder_name.replace(
                                 "results_", '')
                             issue_image = result

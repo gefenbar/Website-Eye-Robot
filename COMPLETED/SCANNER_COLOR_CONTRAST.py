@@ -82,9 +82,6 @@ def color_contrast(img_path, save_path):
 
         # Check if the region contains text using regular expression
         if re.search(r'\w', text):
-            # Draw a green rectangle around the region of interest
-            # cv2.rectangle(img_copy, (x, y), (x+w, y+h), (0, 255, 0), 2)
-
             # Compute the mean and peak color of the cropped region
             mean_color = np.mean(crop_img, axis=(0, 1))
             peak_color = np.max(crop_img, axis=(0, 1))
@@ -94,7 +91,7 @@ def color_contrast(img_path, save_path):
 
             if color_diff < COLOR_DIFF_THRESHOLD:
                 found_issue = True
-                # Draw a red rectangle around the region of interest
+                # Draw a purple rectangle around the region of interest
                 cv2.rectangle(img_copy, (x, y), (x+w, y+h), (128, 0, 128), 2)
 
     if found_issue:
@@ -105,5 +102,5 @@ def color_contrast(img_path, save_path):
         return ""
 
 
-color_contrast(
-    '/home/gefen/Website-Eye-Robot/image_62.png', 'current_results.png')
+# color_contrast(
+#     '/home/gefen/Website-Eye-Robot/image_62.png', 'current_results.png')
