@@ -15,7 +15,7 @@ import requests
 import threading
 import json
 import pandas as pd
-from COMPLETED.SCANNER_COLOR_CONTRAST import color_contrast
+from SCANNER_COLOR_CONTRAST import color_contrast
 from SMALL_TEXT import detect_small_text
 # from PREVIOUS_COLOR_CONTRAST import color_contrast
 import cv2
@@ -266,4 +266,4 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run(port=3085)
+    app.run(port=3086)
