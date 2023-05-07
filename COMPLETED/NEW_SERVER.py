@@ -15,10 +15,10 @@ import requests
 import threading
 import json
 import pandas as pd
-from SCANNER_COLOR_CONTRAST import color_contrast
-from SMALL_TEXT import detect_small_text
-# from PREVIOUS_COLOR_CONTRAST import color_contrast
+from NEW_SCANNER_COLOR_CONTRAST import color_contrast
+from NEW_SCANNER_SMALL_TEXT import detect_small_text
 import cv2
+
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
@@ -41,57 +41,32 @@ def get_report():
 
 @app.route("/report", methods=["POST"])
 def index():
-
     if request.method == "POST":
         input_url = request.json.get("url")
 
-        if os.path.exists('/home/gefen/Website-Eye-Robot/screenshots_375x667'):
-            shutil.rmtree(
-                '/home/gefen/Website-Eye-Robot/screenshots_375x667')
-        if os.path.exists('/home/gefen/Website-Eye-Robot/screenshots_1366x768'):
-            shutil.rmtree(
-                '/home/gefen/Website-Eye-Robot/screenshots_1366x768')
-        if os.path.exists('/home/gefen/Website-Eye-Robot/screenshots_1920x1080'):
-            shutil.rmtree(
-                '/home/gefen/Website-Eye-Robot/screenshots_1920x1080')
-        if os.path.exists('/home/gefen/Website-Eye-Robot/results_375x667'):
-            shutil.rmtree(
-                '/home/gefen/Website-Eye-Robot/results_375x667')
-        if os.path.exists('/home/gefen/Website-Eye-Robot/results_1366x768'):
-            shutil.rmtree(
-                '/home/gefen/Website-Eye-Robot/results_1366x768')
-        if os.path.exists('/home/gefen/Website-Eye-Robot/results_1920x1080'):
-            shutil.rmtree(
-                '/home/gefen/Website-Eye-Robot/results_1920x1080')
-        # Delete data.json if it exists
-        if os.path.exists("data.json"):
-            os.remove("data.json")
+        # Delete existing folders and files if they exist
+        delete_existing_folders_and_files()
+
+        # Define the data variable as an empty dictionary
+        data = {}
 
         def main_task(**kwargs):
             page_urls = []
             url = kwargs.get('url', '')
-            # Define web driver
             driver = webdriver.Chrome()
-
-            # Define list of media query resolutions to capture screenshots at
             resolutions = [(1920, 1080), (1366, 768), (375, 667)]
 
             try:
-                # Open URL in web driver
+                # Open URL in web driver and add it to the page_urls list
                 driver.get(url)
-                # Add the URL to the page_urls list
                 page_urls.append(url)
-                # Wait for page to load
                 WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located((By.TAG_NAME, "body"))
                 )
 
-                visited_pages = set()  # keep track of visited pages
+                visited_pages = set()
+                create_directories_for_screenshots()
 
-                # Create directories for screenshots
-                os.makedirs("screenshots_1920x1080", exist_ok=True)
-                os.makedirs("screenshots_1366x768", exist_ok=True)
-                os.makedirs("screenshots_375x667", exist_ok=True)
                 for i, resolution in enumerate(resolutions):
                     visited_pages_resolution = set()  # keep track of visited pages for this resolution
 
@@ -128,16 +103,15 @@ def index():
 
                             # Set initial scroll position and section height
                             scroll_position = 0
-                            section_height = 800
+                            section_height = int(resolution[1] * 0.6)
 
                             # Capture screenshots of each section of the page
                             while scroll_position < page_height:
-                                driver.execute_script(
-                                    f"window.scrollTo(0, {scroll_position})")
-                                time.sleep(1)
                                 driver.save_screenshot(
                                     os.path.join(
-                                        folder_name, f"{i}_{len(visited_pages_resolution)}.png")
+                                        folder_name,
+                                        f"{i}_{len(visited_pages_resolution)}_{scroll_position}.png",
+                                    )
                                 )
                                 scroll_position += section_height
                                 driver.execute_script(
@@ -145,10 +119,8 @@ def index():
                                 )
                                 time.sleep(1)
 
-                            # Find all links on page
                             links = driver.find_elements(By.TAG_NAME, "a")
 
-                            # Visit all links on page
                             for link in links:
                                 try:
                                     href = link.get_attribute("href")
@@ -156,7 +128,7 @@ def index():
                                         href is not None
                                         and href.startswith(url)
                                         and href not in visited_pages_resolution
-                                        and "#" not in href  # added to skip navigating within the same page using href
+                                        and "#" not in href
                                         and not href.lower().endswith(".pdf")
                                     ):
                                         driver.get(href)
@@ -166,28 +138,17 @@ def index():
                         except StaleElementReferenceException:
                             continue
 
-                # Close web driver
             finally:
                 driver.quit()
 
-            # Define the base folder path
             base_path = '/home/gefen/Website-Eye-Robot'
-
-            # Define the folder names for each scanner
             scanner_folder_names = {
                 'color_contrast': 'color_contrast_results',
                 'small_text': 'small_text_results',
-                # Add more scanners and folder names as needed
             }
 
-            # Create the parent folders for each scanner
-            for folder_name in scanner_folder_names.values():
-                scanner_folder_path = os.path.join(base_path, folder_name)
-                if not os.path.exists(scanner_folder_path):
-                    os.makedirs(scanner_folder_path)
-                    print(f"Created folder: {scanner_folder_path}")
+            create_parent_folders_for_scanners(base_path, scanner_folder_names)
 
-            # Define the folder paths for each resolution
             folder_paths = [
                 os.path.join(base_path, 'screenshots_1920x1080'),
                 os.path.join(base_path, 'screenshots_1366x768'),
@@ -196,14 +157,12 @@ def index():
 
             report_cards = []
 
-            # Loop through the folder paths for each resolution
             for folder_path in folder_paths:
                 for filename in os.listdir(folder_path):
                     if filename.endswith('.jpg') or filename.endswith('.png'):
                         img_path = os.path.join(folder_path, filename)
                         print(f"Processing {img_path}")
 
-                        # Loop through each scanner and run its function
                         for scanner_name, result_folder_name in scanner_folder_names.items():
                             result_folder_path = os.path.join(
                                 base_path, result_folder_name)
@@ -217,7 +176,6 @@ def index():
                             elif scanner_name == 'small_text':
                                 issue = detect_small_text(img_path, save_path)
 
-                            # Check if there are any issues found
                             if issue:
                                 issue_found = True
                                 page_index = page_urls.index(url)
@@ -232,38 +190,68 @@ def index():
                 html_list = []
                 for report_card in report_cards:
                     html = f"""
-                        <div class="report-card">
-                            <div class="card-header">
-                                <h3>{report_card['name']}</h3>
-                                <p> page url-> {report_card['page_url']}</p>
-                                <p>resolution-> {report_card['resolution']}</p>
-                            </div>
-                            <div class="card-screenshot">
-                                <img src='{report_card['image']}' alt="Screenshot of Issue #{report_card['name']}">
-                            </div>
+                    <div class="report-card">
+                        <div class="card-header">
+                            <h3>{report_card['name']}</h3>
+                            <p> page url-> {report_card['page_url']}</p>
+                            <p>resolution-> {report_card['resolution']}</p>
                         </div>
+                        <div class="card-screenshot">
+                            <img src='{report_card['image']}' alt="Screenshot of Issue #{report_card['name']}">
+                        </div>
+                    </div>
                     """
                     html_list.append(html)
                 all_html = '\n'.join(html_list)
             else:
                 all_html = f"""
-                    <div class="report-card">
-                        <div class="card-header">
-                            <h3> No issues found</h3>
-                        </div>
+                <div class="report-card">
+                    <div class="card-header">
+                        <h3> No issues found</h3>
                     </div>
+                </div>
                 """
             print("FINISHED")
 
-            data = {}
             data[url] = all_html
             with open('data.json', 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=4)
 
-        thread = threading.Thread(target=main_task, kwargs={'url': input_url})
+        thread = threading.Thread(target=main_task,
+                                  kwargs={'url': input_url})
         thread.start()
         return 'ok'
 
 
+def delete_existing_folders_and_files():
+    if os.path.exists('/home/gefen/Website-Eye-Robot/screenshots_375x667'):
+        shutil.rmtree('/home/gefen/Website-Eye-Robot/screenshots_375x667')
+    if os.path.exists('/home/gefen/Website-Eye-Robot/screenshots_1366x768'):
+        shutil.rmtree('/home/gefen/Website-Eye-Robot/screenshots_1366x768')
+    if os.path.exists('/home/gefen/Website-Eye-Robot/screenshots_1920x1080'):
+        shutil.rmtree('/home/gefen/Website-Eye-Robot/screenshots_1920x1080')
+    if os.path.exists('/home/gefen/Website-Eye-Robot/small_text_results'):
+        shutil.rmtree('/home/gefen/Website-Eye-Robot/small_text_results')
+    if os.path.exists('/home/gefen/Website-Eye-Robot/color_contrast_results/'):
+        shutil.rmtree('/home/gefen/Website-Eye-Robot/color_contrast_results/')
+
+    if os.path.exists("data.json"):
+        os.remove("data.json")
+
+
+def create_directories_for_screenshots():
+    os.makedirs("screenshots_1920x1080", exist_ok=True)
+    os.makedirs("screenshots_1366x768", exist_ok=True)
+    os.makedirs("screenshots_375x667", exist_ok=True)
+
+
+def create_parent_folders_for_scanners(base_path: str,
+                                       scanner_folder_names: dict):
+    for folder_name in scanner_folder_names.values():
+        scanner_folder_path = os.path.join(base_path, folder_name)
+        if not os.path.exists(scanner_folder_path):
+            os.makedirs(scanner_folder_path)
+
+
 if __name__ == '__main__':
-    app.run(port=3086)
+    app.run(port=3106)

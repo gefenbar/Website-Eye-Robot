@@ -1,6 +1,6 @@
 
 async function getReport() {
-  const response = await fetch('http://127.0.0.1:3086/report', {
+  const response = await fetch('http://127.0.0.1:3112/report', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   })
@@ -19,7 +19,7 @@ function ScanReport() {
     const urlInput = document.querySelector('#url-input').value.trim();
     document.querySelector('.lds-hourglass').style.display = 'block'
     // Send the URL to the server for scanning
-    fetch('http://127.0.0.1:3086/report', {
+    fetch('http://127.0.0.1:3112/report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: urlInput })

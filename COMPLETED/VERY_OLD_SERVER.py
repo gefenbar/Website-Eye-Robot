@@ -16,7 +16,6 @@ import threading
 import json
 import pandas as pd
 from NEW_SCANNER_COLOR_CONTRAST import color_contrast
-from SMALL_TEXT import detect_small_text
 # from PREVIOUS_COLOR_CONTRAST import color_contrast
 import cv2
 app = Flask(__name__)
@@ -68,7 +67,6 @@ def index():
             os.remove("data.json")
 
         def main_task(**kwargs):
-            page_urls = []
             url = kwargs.get('url', '')
             # Define web driver
             driver = webdriver.Chrome()
@@ -79,8 +77,6 @@ def index():
             try:
                 # Open URL in web driver
                 driver.get(url)
-                # Add the URL to the page_urls list
-                page_urls.append(url)
                 # Wait for page to load
                 WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located((By.TAG_NAME, "body"))
@@ -169,95 +165,74 @@ def index():
             finally:
                 driver.quit()
 
-            # Define the base folder path
-            base_path = '/home/gefen/Website-Eye-Robot'
-
-            # Define the folder names for each scanner
-            scanner_folder_names = {
-                'color_contrast': 'color_contrast_results',
-                'small_text': 'small_text_results',
-                # Add more scanners and folder names as needed
-            }
-
-            # Create the parent folders for each scanner
-            for folder_name in scanner_folder_names.values():
-                scanner_folder_path = os.path.join(base_path, folder_name)
-                if not os.path.exists(scanner_folder_path):
-                    os.makedirs(scanner_folder_path)
-                    print(f"Created folder: {scanner_folder_path}")
-
             # Define the folder paths for each resolution
+            base_path = '/home/gefen/Website-Eye-Robot'
             folder_paths = [
                 os.path.join(base_path, 'screenshots_1920x1080'),
                 os.path.join(base_path, 'screenshots_1366x768'),
                 os.path.join(base_path, 'screenshots_375x667')
             ]
+            result_folder_names = [
+                os.path.join(base_path, 'results_1920x1080'),
+                os.path.join(base_path, 'results_1366x768'),
+                os.path.join(base_path, 'results_375x667')
+            ]
 
-            report_cards = []
+            i = 1
+            html_list = []
+            num_of_screenshots = 0
+            for folder_name in result_folder_names:
+                if not os.path.exists(folder_name):
+                    os.makedirs(folder_name)
+                    print(f"Created folder: {folder_name}")
 
-            # Loop through the folder paths for each resolution
-            for folder_path in folder_paths:
+            for folder_path, result_folder_name in zip(folder_paths, result_folder_names):
                 for filename in os.listdir(folder_path):
                     if filename.endswith('.jpg') or filename.endswith('.png'):
                         img_path = os.path.join(folder_path, filename)
                         print(f"Processing {img_path}")
 
-                        # Loop through each scanner and run its function
-                        for scanner_name, result_folder_name in scanner_folder_names.items():
-                            result_folder_path = os.path.join(
-                                base_path, result_folder_name)
-                            filename_prefix = f"{scanner_name}_"
-                            save_path = os.path.join(
-                                result_folder_path, filename_prefix + str(i) + "_" + filename)
-                            i += 1
-
-                            if scanner_name == 'color_contrast':
-                                issue = color_contrast(img_path, save_path)
-                            elif scanner_name == 'small_text':
-                                issue = detect_small_text(img_path, save_path)
-
-                            # Check if there are any issues found
-                            if issue:
-                                issue_found = True
-                                page_index = page_urls.index(url)
-                                report_cards.append({
-                                    'name': scanner_name.replace('_', ' ').title(),
-                                    'image': issue.replace('home/gefen/Website-Eye-Robot/', ''),
-                                    'resolution': folder_path.replace('/home/gefen/Website-Eye-Robot/screenshots_', ''),
-                                    'page_url': page_urls[page_index]
-                                })
-
-            if issue_found:
-                html_list = []
-                for report_card in report_cards:
-                    html = f"""
-                        <div class="report-card">
-                            <div class="card-header">
-                                <h3>{report_card['name']}</h3>
-                                <p> page url-> {report_card['page_url']}</p>
-                                <p>resolution-> {report_card['resolution']}</p>
-                            </div>
-                            <div class="card-screenshot">
-                                <img src='{report_card['image']}' alt="Screenshot of Issue #{report_card['name']}">
-                            </div>
-                        </div>
-                    """
-                    html_list.append(html)
-                all_html = '\n'.join(html_list)
-            else:
-                all_html = f"""
-                    <div class="report-card">
-                        <div class="card-header">
-                            <h3> No issues found</h3>
-                        </div>
-                    </div>
-                """
-            print("FINISHED")
-
-            data = {}
-            data[url] = all_html
-            with open('data.json', 'w', encoding='utf-8') as f:
-                json.dump(data, f, ensure_ascii=False, indent=4)
+                        save_path = os.path.join(
+                            result_folder_name, filename)
+                        result = color_contrast(img_path, save_path)
+                        # check if there are any detections
+                        if result != "":
+                            issue_name = "Color Contrast"  # should be dynamic instead
+                            issue_resolution = result_folder_name.replace(
+                                "results_", '')
+                            issue_image = result
+                            # issue_image = f"{result_folder_name}/{filename}"
+                            page_url = "https://placeholder.com"
+                            print(f"resolution:{issue_resolution}")
+                            # print(f"imagepath:{issue_image}")
+                            html = f"""
+                                    <div class="report-card">
+                                        <div class="card-header">
+                                            <h3>{issue_name}</h3>
+                                            <p> page url: {page_url}</p>
+                                            <p>resolution: {issue_resolution.replace('/home/gefen/Website-Eye-Robot/', '')}</p>
+                                        </div>
+                                        <div class="card-screenshot">
+                                            <img src='{issue_image.replace('home/gefen/Website-Eye-Robot/', '')}' alt="Screenshot of Issue #{issue_name}">
+                                        </div>
+                                    </div>
+                                """
+                            html_list.append(html)
+                            num_of_screenshots += 1
+                if num_of_screenshots > 0:
+                    all_html = '\n'.join(html_list)
+                else:
+                    # i--> to make the "no issues" message appear only if there are no more images generated
+                    all_html = f"""
+                                        <div class="report-card">
+                                            <div class="card-header">
+                                                <h3> No issues found</h3>
+                                        </div>
+                                    """
+                data = {}
+                data[url] = all_html
+                with open('data.json', 'w', encoding='utf-8') as f:
+                    json.dump(data, f, ensure_ascii=False, indent=4)
 
         thread = threading.Thread(target=main_task, kwargs={'url': input_url})
         thread.start()
@@ -265,4 +240,4 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run(port=3097)
+    app.run(port=3098)
