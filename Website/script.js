@@ -10,7 +10,7 @@ function setLoadingState(isLoading) {
 
 async function getReport() {
   setLoadingState(true);
-  const response = await fetch('http://127.0.0.1:3008/report', {
+  const response = await fetch('http://127.0.0.1:3013/report', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   })
@@ -52,7 +52,7 @@ function ScanReport() {
   try {
     const urlInput = document.querySelector('#url-input').value.trim();
     // Send the URL to the server for scanning
-    fetch('http://127.0.0.1:3008/report', {
+    fetch('http://127.0.0.1:3013/report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: urlInput })
