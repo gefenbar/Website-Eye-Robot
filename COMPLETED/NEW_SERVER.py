@@ -144,7 +144,7 @@ def index():
             base_path = '/home/gefen/Website-Eye-Robot'
             scanner_folder_names = {
                 'color_contrast': 'color_contrast_results',
-                'small_text': 'small_text_results',
+                'small_text': 'small_text_results'
             }
 
             create_parent_folders_for_scanners(base_path, scanner_folder_names)
@@ -258,4 +258,4 @@ def create_parent_folders_for_scanners(base_path: str,
 
 
 if __name__ == '__main__':
-    app.run(port=3013)
+    app.run(port=3014)

@@ -43,7 +43,7 @@ def detect_color_contrast(img_path, save_path):
                     found_issue = True
                     # Draw a purple rectangle around the region of interest
                     cv2.rectangle(img_copy, (x, y),
-                                  (x+w, y+h), (128, 0, 128), 2)
+                                  (x+w, y+h), (255, 102, 0), 2)
 
     if found_issue:
         cv2.imwrite(save_path, img_copy)
