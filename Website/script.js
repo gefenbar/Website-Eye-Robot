@@ -1,7 +1,9 @@
 
 
+document.getElementById("url").classList.add("loading");
+
 async function getReport() {
-  const response = await fetch('http://127.0.0.1:3139/report', {
+  const response = await fetch('http://127.0.0.1:3005/report', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   })
@@ -17,16 +19,19 @@ async function getReport() {
   screenshotImgs.forEach((screenshotImg) => {
     screenshotImg.addEventListener('mousemove', handleMouseMove);
   });
+    document.getElementById("url").classList.remove("loading");
+    document.getElementById("url").style.padding='10px'
 }
 getReport()
 
 function handleMouseMove(event) {
   const { left, top, width, height } = event.target.getBoundingClientRect();
-  const x = ((event.clientX - left) / width) * 135;
-  const y = ((event.clientY - top) / height) * 135;
+  const x = ((event.clientX - left) / width) * 150;
+  const y = ((event.clientY - top) / height) * 150;
   event.target.style.transformOrigin = `${x}% ${y}%`;
   event.target.style.transform = 'scale(1.5)';
-  
+
+
   // Reset the transform when the mouse moves away from the element
   event.target.addEventListener('mouseleave', () => {
     event.target.style.transform = 'none';
@@ -38,7 +43,7 @@ function ScanReport() {
   try {
     const urlInput = document.querySelector('#url-input').value.trim();
     // Send the URL to the server for scanning
-    fetch('http://127.0.0.1:3139/report', {
+    fetch('http://127.0.0.1:3005/report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: urlInput })
@@ -116,7 +121,7 @@ urlInput.addEventListener('input', () => {
 });
 
 const url_display = document.querySelector('h3#url')
-const url_indicator=document.querySelector('#url')
-if (url_indicator.innerText==0  ) {
+const url_indicator = document.querySelector('#url')
+if (url_indicator.innerText == 0) {
   url_display.style.display = 'none'
 }

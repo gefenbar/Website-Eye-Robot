@@ -256,4 +256,4 @@ def create_parent_folders_for_scanners(base_path: str,
 
 
 if __name__ == '__main__':
-    app.run(port=3139)
+    app.run(port=3005)
