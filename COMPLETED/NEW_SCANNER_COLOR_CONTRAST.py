@@ -11,7 +11,7 @@ MIN_SOLIDITY = 0
 COLOR_DIFF_THRESHOLD = 90
 
 
-def color_contrast(img_path, save_path):
+def detect_color_contrast(img_path, save_path):
 
     # Load and preprocess the image
     img = load_image(img_path)
@@ -52,7 +52,6 @@ def color_contrast(img_path, save_path):
         print("no issues found")
         return ""
 
-
 def load_image(img_path):
     return cv2.imread(img_path)
 
@@ -68,7 +67,7 @@ def preprocess_image(img):
 def threshold_image(gray):
     return cv2.adaptiveThreshold(
         gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY_INV, 11, 2)
+        cv2.THRESH_BINARY_INV, 11, 7)
 
 
 def apply_morphological_operations(thresh):
@@ -114,3 +113,6 @@ def compute_color_difference(crop_img):
     peak_color = np.max(crop_img, axis=(0, 1))
     color_diff = np.linalg.norm(mean_color - peak_color)
     return color_diff
+
+
+# color_contrast('/home/gefen/Website-Eye-Robot/screenshots_1366x768/1_1_0.png', 'asxjasbcjkasbjclsa.png')

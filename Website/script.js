@@ -1,25 +1,44 @@
 
+
 async function getReport() {
-  const response = await fetch('http://127.0.0.1:3112/report', {
+  const response = await fetch('http://127.0.0.1:3139/report', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   })
-  document.querySelector('.lds-hourglass').style.display = 'none'
   if (response.status === 404) return
   const result = await response.json()
   const url = Object.keys(result)[0]
   const content = result[url]
   document.getElementById('content').innerHTML = content
   document.getElementById('url').innerHTML = url
+
+  // Select screenshot images and add event listeners
+  const screenshotImgs = document.querySelectorAll('.screenshot-img');
+  screenshotImgs.forEach((screenshotImg) => {
+    screenshotImg.addEventListener('mousemove', handleMouseMove);
+  });
 }
 getReport()
+
+function handleMouseMove(event) {
+  const { left, top, width, height } = event.target.getBoundingClientRect();
+  const x = ((event.clientX - left) / width) * 135;
+  const y = ((event.clientY - top) / height) * 135;
+  event.target.style.transformOrigin = `${x}% ${y}%`;
+  event.target.style.transform = 'scale(1.5)';
+  
+  // Reset the transform when the mouse moves away from the element
+  event.target.addEventListener('mouseleave', () => {
+    event.target.style.transform = 'none';
+  });
+}
+
 function ScanReport() {
   // Get the URL input field value
   try {
     const urlInput = document.querySelector('#url-input').value.trim();
-    document.querySelector('.lds-hourglass').style.display = 'block'
     // Send the URL to the server for scanning
-    fetch('http://127.0.0.1:3112/report', {
+    fetch('http://127.0.0.1:3139/report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: urlInput })
@@ -27,11 +46,12 @@ function ScanReport() {
     setTimeout(() => {
       getReport()
     }, 30000)
+
+
   }
   catch (e) {
     console.log(e)
   }
-
 }
 
 document.getElementById("scan").addEventListener("submit", (e) => {
@@ -87,24 +107,16 @@ urlInput.addEventListener('input', () => {
   if (urlInput.value.trim() === '' || !urlPattern.test(urlInput.value.trim())) {
     // Set the button color to red if the input is empty or not valid
     scanButton.style.backgroundColor = '#f44336';
-    console.log(scanButton.style.backgroundColor);
-    console.log("1");
     scanButton.disabled = true;
   } else {
     // Set the button color to green if the input is valid
     scanButton.style.backgroundColor = '#4CAF50';
-    console.log(scanButton.style.backgroundColor);
-    console.log("2");
     scanButton.disabled = false;
   }
 });
 
 const url_display = document.querySelector('h3#url')
-
-if (url_display.innerText.length <= 1) {
+const url_indicator=document.querySelector('#url')
+if (url_indicator.innerText==0  ) {
   url_display.style.display = 'none'
 }
-
-
-
-

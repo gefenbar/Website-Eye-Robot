@@ -27,7 +27,7 @@ nav {
 
 .logo h1 {
     margin: 0;
-    font-size: 24px;
+    font-size: 20px;
     color: #bbb;
 
 }
@@ -121,60 +121,64 @@ nav {
     background-color: #fff;
     color: #333;
 }
-
 /* Report Styles */
 #report {
     padding: 100px;
     text-align: center;
     background-color: #f2f2f2;
-
-}
-
-#report h2 {
+  }
+  
+  #report h2 {
     font-size: 48px;
     margin: 0;
     color: #333;
-}
-
-.report-card {
+  }
+  
+  .report-card {
     display: flex;
     justify-content: center;
     align-items: center;
     margin: 40px 0;
     box-shadow: 0px 0px 10px #ccc;
-}
-
-.card-header {
+  }
+  
+  .card-header {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: 50%;
+    width: auto;
     padding: 20px;
-}
-
-.card-header h3 {
+  }
+  
+  .card-header h3 {
     font-size: 24px;
     margin: 0;
     color: #333;
-}
-
-.card-header p {
+  }
+  
+  .card-header p {
     font-size: 18px;
     margin: 10px 0 0 0;
     color: #666;
-
-}
-
-.card-screenshot {
-    width: 50%;
-}
-
-.card-screenshot img {
-    width: 100%;
-    height: auto;
-}
-
+  }
+  
+  .card-screenshot {
+    position: relative;
+    overflow: hidden;
+    width:auto;
+    height: 300px;
+  }
+  
+  .card-screenshot img {
+    display: block;
+    width: auto;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  
+  
 footer {
     background-color: #333;
     color: #fff;
@@ -340,47 +344,11 @@ section:last-of-type {
     text-decoration: none;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.25);
     transition: background-color 0.2s ease-in-out;
+    width: 75%;
 }
 
 #url:hover {
     color: #6930C3;
     background-color: white;
 
-}
-
-.lds-hourglass {
-    display: inline-block;
-    position: relative;
-    width: 80px;
-    height: 80px;
-
-}
-
-.lds-hourglass:after {
-    content: " ";
-    display: block;
-    border-radius: 50%;
-    width: 0;
-    height: 0;
-    margin: 8px;
-    box-sizing: border-box;
-    border: 32px solid #fff;
-    border-color: #fff transparent #fff transparent;
-    animation: lds-hourglass 1.2s infinite;
-}
-
-@keyframes lds-hourglass {
-    0% {
-        transform: rotate(0);
-        animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
-    }
-
-    50% {
-        transform: rotate(900deg);
-        animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-    }
-
-    100% {
-        transform: rotate(1800deg);
-    }
 }

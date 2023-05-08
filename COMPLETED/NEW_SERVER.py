@@ -15,7 +15,7 @@ import requests
 import threading
 import json
 import pandas as pd
-from NEW_SCANNER_COLOR_CONTRAST import color_contrast
+from NEW_SCANNER_COLOR_CONTRAST import detect_color_contrast
 from NEW_SCANNER_SMALL_TEXT import detect_small_text
 import cv2
 
@@ -103,7 +103,7 @@ def index():
 
                             # Set initial scroll position and section height
                             scroll_position = 0
-                            section_height = int(resolution[1] * 0.6)
+                            section_height = int(resolution[1] * 0.9)
 
                             # Capture screenshots of each section of the page
                             while scroll_position < page_height:
@@ -117,7 +117,7 @@ def index():
                                 driver.execute_script(
                                     f"window.scrollTo(0, {scroll_position})"
                                 )
-                                time.sleep(1)
+                                time.sleep(0.5)
 
                             links = driver.find_elements(By.TAG_NAME, "a")
 
@@ -172,7 +172,8 @@ def index():
                             i += 1
 
                             if scanner_name == 'color_contrast':
-                                issue = color_contrast(img_path, save_path)
+                                issue = detect_color_contrast(
+                                    img_path, save_path)
                             elif scanner_name == 'small_text':
                                 issue = detect_small_text(img_path, save_path)
 
@@ -192,14 +193,16 @@ def index():
                     html = f"""
                     <div class="report-card">
                         <div class="card-header">
-                            <h3>{report_card['name']}</h3>
-                            <p> page url-> {report_card['page_url']}</p>
-                            <p>resolution-> {report_card['resolution']}</p>
+                        <h3>{report_card['name']}</h3>
+                        <p> page url-> {report_card['page_url']}</p>
+                        <p>resolution-> {report_card['resolution']}</p>
                         </div>
                         <div class="card-screenshot">
-                            <img src='{report_card['image']}' alt="Screenshot of Issue #{report_card['name']}">
+                        <a>
+                        <img class="screenshot-img" src='{report_card['image']}' alt="Screenshot of Issue #{report_card['name']}">
+                        </a>
                         </div>
-                    </div>
+                        </div>
                     """
                     html_list.append(html)
                 all_html = '\n'.join(html_list)
@@ -234,7 +237,6 @@ def delete_existing_folders_and_files():
         shutil.rmtree('/home/gefen/Website-Eye-Robot/small_text_results')
     if os.path.exists('/home/gefen/Website-Eye-Robot/color_contrast_results/'):
         shutil.rmtree('/home/gefen/Website-Eye-Robot/color_contrast_results/')
-
     if os.path.exists("data.json"):
         os.remove("data.json")
 
@@ -254,4 +256,4 @@ def create_parent_folders_for_scanners(base_path: str,
 
 
 if __name__ == '__main__':
-    app.run(port=3106)
+    app.run(port=3139)
