@@ -1,9 +1,16 @@
+let isLoading = false;
 
-
-document.getElementById("url").classList.add("loading");
+function setLoadingState(isLoading) {
+  if (isLoading) {
+    document.getElementById("url").classList.add("loading");
+  } else {
+    document.getElementById("url").classList.remove("loading");
+  }
+}
 
 async function getReport() {
-  const response = await fetch('http://127.0.0.1:3005/report', {
+  setLoadingState(true);
+  const response = await fetch('http://127.0.0.1:3008/report', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   })
@@ -19,8 +26,9 @@ async function getReport() {
   screenshotImgs.forEach((screenshotImg) => {
     screenshotImg.addEventListener('mousemove', handleMouseMove);
   });
-    document.getElementById("url").classList.remove("loading");
-    document.getElementById("url").style.padding='10px'
+  // document.getElementById("url").classList.remove("loading");
+  setLoadingState(false);
+  document.getElementById("url").style.padding = '10px'
 }
 getReport()
 
@@ -39,11 +47,12 @@ function handleMouseMove(event) {
 }
 
 function ScanReport() {
+   isLoading=true
   // Get the URL input field value
   try {
     const urlInput = document.querySelector('#url-input').value.trim();
     // Send the URL to the server for scanning
-    fetch('http://127.0.0.1:3005/report', {
+    fetch('http://127.0.0.1:3008/report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: urlInput })

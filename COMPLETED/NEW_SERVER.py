@@ -194,8 +194,9 @@ def index():
                     <div class="report-card">
                         <div class="card-header">
                         <h3>{report_card['name']}</h3>
-                        <p> page url-> {report_card['page_url']}</p>
-                        <p>resolution-> {report_card['resolution']}</p>
+                        <span> page url -> </span>
+                        <a href="{report_card['page_url']}"> {report_card['page_url']}</a>
+                        <p>resolution -> {report_card['resolution']}</p>
                         </div>
                         <div class="card-screenshot">
                         <a>
@@ -256,4 +257,4 @@ def create_parent_folders_for_scanners(base_path: str,
 
 
 if __name__ == '__main__':
-    app.run(port=3005)
+    app.run(port=3008)
