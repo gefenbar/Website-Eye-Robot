@@ -69,7 +69,7 @@ def calculate_min_max_height(height):
     # The minimum height of a region to be considered as containing small text
     reference_height = 1080
     min_height = 0
-    max_height = 25
+    max_height = 35
     ratio = height / reference_height
 
     MIN_HEIGHT = int(ratio * min_height)  # adjust based on image resolution
