@@ -33,7 +33,22 @@ def detect_small_text(img_path, save_path):
         if h < MIN_HEIGHT or h > MAX_HEIGHT:
             continue
         cropped_img = img[y:y+h, x:x+w]
+
+        # Suggestion: Preprocess the cropped image to make the text more clear and visible
+        # You can use image filters such as Gaussian blur or sharpening to enhance the image quality
+        # For example:
+        cropped_img = cv2.GaussianBlur(cropped_img, (3, 3), 0)
+        kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
+        cropped_img = cv2.filter2D(cropped_img, -1, kernel)
+
         text = pytesseract.image_to_string(cropped_img, lang='eng')
+
+        # Suggestion: Use the appropriate configuration options for pytesseract to optimize the OCR performance
+        # You can specify the page segmentation mode (psm), OCR engine mode (oem), and other parameters
+        # For example:
+        text = pytesseract.image_to_string(
+            cropped_img, lang='eng', config='--psm 6 --oem 3 -c tessedit_char_whitelist=0123456789')
+
         if not text.strip():
             continue
 
@@ -55,12 +70,12 @@ def load_and_resize_image(img_path):
     # Load the image
     img = cv2.imread(img_path)
 
-    # # Resize the image
-    # scale_percent = 100  # percent of original size
-    # width = int(img.shape[1] * scale_percent / 100)
-    # height = int(img.shape[0] * scale_percent / 100)
-    # dim = (width, height)
-    # img = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+    # Resize the image
+    scale_percent = 100  # percent of original size
+    width = int(img.shape[1] * scale_percent / 100)
+    height = int(img.shape[0] * scale_percent / 100)
+    dim = (width, height)
+    img = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
 
     return img
 
@@ -69,7 +84,7 @@ def calculate_min_max_height(height):
     # The minimum height of a region to be considered as containing small text
     reference_height = 1080
     min_height = 0
-    max_height = 35
+    max_height = 20
     ratio = height / reference_height
 
     MIN_HEIGHT = int(ratio * min_height)  # adjust based on image resolution
@@ -85,7 +100,7 @@ def preprocess_image(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # Enhance contrast using CLAHE
-    clahe = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(8, 8))
+    clahe = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(16, 16))
     gray = clahe.apply(gray)
 
     # Apply noise removal to the grayscale image using Gaussian blur
@@ -116,4 +131,4 @@ def apply_morphological_operations(thresh):
     return thresh
 
 
-# detect_small_text("screenshots_1920x1080/0_1_0.png", "SMALL_TEXT.png")
+# detect_small_text("/home/gefen/Website-Eye-Robot/screenshots_1920x1080/0_1_0.png", "testttttttttttttttt.png")

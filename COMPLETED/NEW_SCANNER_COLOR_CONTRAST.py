@@ -7,8 +7,8 @@ import re
 MIN_CONTOUR_SIZE = 600
 MIN_ASPECT_RATIO = 0.1
 MAX_ASPECT_RATIO = 100
-MIN_SOLIDITY = 0
-COLOR_DIFF_THRESHOLD = 90
+MIN_SOLIDITY = 0.3
+COLOR_DIFF_THRESHOLD = 75
 
 
 def detect_color_contrast(img_path, save_path):

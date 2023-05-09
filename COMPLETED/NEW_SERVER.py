@@ -17,6 +17,8 @@ import json
 import pandas as pd
 from NEW_SCANNER_COLOR_CONTRAST import detect_color_contrast
 from NEW_SCANNER_SMALL_TEXT import detect_small_text
+from NEW_SCANNER_TEXT_OVERLAP import detect_text_overlap
+
 import cv2
 
 app = Flask(__name__)
@@ -103,7 +105,7 @@ def index():
 
                             # Set initial scroll position and section height
                             scroll_position = 0
-                            section_height = int(resolution[1] * 0.9)
+                            section_height = int(resolution[1] * 0.8)
 
                             # Capture screenshots of each section of the page
                             while scroll_position < page_height:
@@ -117,7 +119,7 @@ def index():
                                 driver.execute_script(
                                     f"window.scrollTo(0, {scroll_position})"
                                 )
-                                time.sleep(0.5)
+                                time.sleep(0.2)
 
                             links = driver.find_elements(By.TAG_NAME, "a")
 
@@ -144,7 +146,9 @@ def index():
             base_path = '/home/gefen/Website-Eye-Robot'
             scanner_folder_names = {
                 'color_contrast': 'color_contrast_results',
-                'small_text': 'small_text_results'
+                'small_text': 'small_text_results',
+                'text_overlap': 'text_overlap_results'
+
             }
 
             create_parent_folders_for_scanners(base_path, scanner_folder_names)
@@ -176,6 +180,9 @@ def index():
                                     img_path, save_path)
                             elif scanner_name == 'small_text':
                                 issue = detect_small_text(img_path, save_path)
+                            elif scanner_name == 'text_overlap':
+                                issue = detect_text_overlap(
+                                    img_path, save_path)
 
                             if issue:
                                 issue_found = True
@@ -239,6 +246,11 @@ def delete_existing_folders_and_files():
         shutil.rmtree('/home/gefen/Website-Eye-Robot/small_text_results')
     if os.path.exists('/home/gefen/Website-Eye-Robot/color_contrast_results/'):
         shutil.rmtree('/home/gefen/Website-Eye-Robot/color_contrast_results/')
+    if os.path.exists('/home/gefen/Website-Eye-Robot/small_text_results/'):
+        shutil.rmtree('/home/gefen/Website-Eye-Robot/small_text_results/')
+    if os.path.exists('/home/gefen/Website-Eye-Robot/text_overlap_results/'):
+        shutil.rmtree(
+            '/home/gefen/Website-Eye-Robot/text_overlap_results/')
     if os.path.exists("data.json"):
         os.remove("data.json")
 
@@ -258,4 +270,4 @@ def create_parent_folders_for_scanners(base_path: str,
 
 
 if __name__ == '__main__':
-    app.run(port=3014)
+    app.run(port=3035)
