@@ -58,20 +58,20 @@ def load_image(img_path):
 
 def preprocess_image(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(4, 4))
     gray = clahe.apply(gray)
-    gray = cv2.GaussianBlur(gray, (1, 1), 0)
+    # gray = cv2.GaussianBlur(gray, (1, 1), 0)
     return gray
 
 
 def threshold_image(gray):
     return cv2.adaptiveThreshold(
         gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY_INV, 11, 7)
+        cv2.THRESH_BINARY_INV,11, 2)
 
 
 def apply_morphological_operations(thresh):
-    kernel_size = 11
+    kernel_size = 7
     kernel_shape = cv2.MORPH_ELLIPSE
     kernel = cv2.getStructuringElement(
         kernel_shape, (kernel_size, kernel_size))
@@ -115,4 +115,4 @@ def compute_color_difference(crop_img):
     return color_diff
 
 
-# color_contrast('/home/gefen/Website-Eye-Robot/screenshots_1366x768/1_1_0.png', 'asxjasbcjkasbjclsa.png')
+detect_color_contrast('/home/gefen/Website-Eye-Robot/screenshots_1366x768/1_1_0.png', 'COLOR_CONTRAST.png')

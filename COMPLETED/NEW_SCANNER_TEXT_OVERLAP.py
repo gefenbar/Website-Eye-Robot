@@ -82,8 +82,8 @@ def load_image(img_path):
 
 def preprocess_image(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    # gray = clahe.apply(gray)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(6, 6))
+    gray = clahe.apply(gray)
     # gray = cv2.GaussianBlur(gray, (1, 1), 0)
     return gray
 
@@ -151,4 +151,4 @@ def compute_overlap_ratio(x1, y1, w1, h1, x2, y2, w2, h2):
 
     return overlap_ratio
 
-# detect_text_overlap("/home/gefen/Website-Eye-Robot/screenshots_375x667/2_1_0.png", "TEXT_OVERLAP.png")
+detect_text_overlap("/home/gefen/Website-Eye-Robot/screenshots_375x667/2_1_0.png", "TEXT_OVERLAP.png")

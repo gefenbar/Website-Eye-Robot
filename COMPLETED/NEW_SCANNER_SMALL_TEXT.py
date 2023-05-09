@@ -69,7 +69,7 @@ def calculate_min_max_height(height):
     # The minimum height of a region to be considered as containing small text
     reference_height = 1080
     min_height = 0
-    max_height = 35
+    max_height = 25
     ratio = height / reference_height
 
     MIN_HEIGHT = int(ratio * min_height)  # adjust based on image resolution
@@ -83,13 +83,14 @@ def calculate_min_max_height(height):
 def preprocess_image(img):
     # Convert the image to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
+    # Apply histogram equalization to the grayscale image
+    gray = cv2.equalizeHist(gray)
     # Enhance contrast using CLAHE
-    clahe = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(8, 8))
+    clahe = cv2.createCLAHE(clipLimit=5.0, tileGridSize=(1, 1))
     gray = clahe.apply(gray)
 
     # Apply noise removal to the grayscale image using Gaussian blur
-    gray = cv2.GaussianBlur(gray, (5, 5), 0)
+    gray = cv2.GaussianBlur(gray, (1, 3), 0)
 
     # Sharpen the image using a kernel
     kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
@@ -100,7 +101,7 @@ def preprocess_image(img):
 
 def apply_morphological_operations(thresh):
     # Define the kernel size and shape for morphological operations
-    kernel_size = 5
+    kernel_size = 1
     kernel_shape = cv2.MORPH_ELLIPSE
 
     # Create the kernel for morphological operations
@@ -116,4 +117,5 @@ def apply_morphological_operations(thresh):
     return thresh
 
 
-# detect_small_text("screenshots_1920x1080/0_1_0.png", "SMALL_TEXT.png")
+detect_small_text(
+    "/home/gefen/Website-Eye-Robot/screenshots_1366x768/1_1_0.png", "SMALL_TEXT.png")
