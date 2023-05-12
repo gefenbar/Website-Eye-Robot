@@ -4,11 +4,11 @@ import numpy as np
 import re
 
 # Constants
-MIN_CONTOUR_SIZE = 600
-MIN_ASPECT_RATIO = 0.1
+MIN_CONTOUR_SIZE = 0
+MIN_ASPECT_RATIO = 0
 MAX_ASPECT_RATIO = 100
-MIN_SOLIDITY = 0.3
-COLOR_DIFF_THRESHOLD = 75
+MIN_SOLIDITY = 0
+COLOR_DIFF_THRESHOLD = 80
 
 
 def detect_color_contrast(img_path, save_path):
@@ -104,7 +104,7 @@ def is_region_of_interest(contour):
 
 def contains_text(crop_img):
     crop_img_gray = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
-    text = pytesseract.image_to_string(crop_img_gray, config='--psm 6')
+    text = pytesseract.image_to_string(crop_img_gray, lang='en+heb',config='--psm 6')
     return re.search(r'\w', text)
 
 

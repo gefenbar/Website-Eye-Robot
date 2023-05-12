@@ -33,7 +33,7 @@ def detect_small_text(img_path, save_path):
         if h < MIN_HEIGHT or h > MAX_HEIGHT:
             continue
         cropped_img = img[y:y+h, x:x+w]
-        text = pytesseract.image_to_string(cropped_img, lang='eng')
+        text = pytesseract.image_to_string(cropped_img, lang='eng+heb')
         if not text.strip():
             continue
 
@@ -69,7 +69,7 @@ def calculate_min_max_height(height):
     # The minimum height of a region to be considered as containing small text
     reference_height = 1080
     min_height = 0
-    max_height = 35
+    max_height = 20
     ratio = height / reference_height
 
     MIN_HEIGHT = int(ratio * min_height)  # adjust based on image resolution
@@ -86,7 +86,7 @@ def preprocess_image(img):
     # Apply histogram equalization to the grayscale image
     gray = cv2.equalizeHist(gray)
     # Enhance contrast using CLAHE
-    clahe = cv2.createCLAHE(clipLimit=5.0, tileGridSize=(1, 1))
+    clahe = cv2.createCLAHE(clipLimit=5.0, tileGridSize=(4, 4))
     gray = clahe.apply(gray)
 
     # Apply noise removal to the grayscale image using Gaussian blur
@@ -118,4 +118,4 @@ def apply_morphological_operations(thresh):
 
 
 detect_small_text(
-    "/home/gefen/Website-Eye-Robot/screenshots_1366x768/1_1_0.png", "SMALL_TEXT.png")
+    "/home/gefen/Website-Eye-Robot/screenshots_1920x1080/0_1_0.png", "SMALL_TEXT.png")
