@@ -11,7 +11,7 @@
 <ul>
   <li>Enter a URL to scan and get a report card with screenshots and details of the issues found</li>
   <li>Find issues such as color contrast, small text, layout problems, and more</li>
-  <li>View the report card in the browser or download it as a PDF</li>
+  <li>View the report card in the browser and download it as a well-organized Excel file</li>
   <li>Send feedback or contact us via email</li>
 </ul>
 
