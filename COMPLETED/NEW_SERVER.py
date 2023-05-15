@@ -121,7 +121,7 @@ def index():
                                 driver.execute_script(
                                     f"window.scrollTo(0, {scroll_position})"
                                 )
-                                time.sleep(0.2)
+                                time.sleep(1)
 
                             links = driver.find_elements(By.TAG_NAME, "a")
 
