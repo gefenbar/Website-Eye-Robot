@@ -12,7 +12,6 @@ COLOR_DIFF_THRESHOLD = 80
 
 
 def detect_color_contrast(img_path, save_path):
-
     # Load and preprocess the image
     img = load_image(img_path)
     gray = preprocess_image(img)
@@ -23,27 +22,31 @@ def detect_color_contrast(img_path, save_path):
 
     # Find contours in the thresholded image
     contours = find_contours(thresh)
-
     img_copy = img.copy()
     found_issue = False
+
     for contour in contours:
         # Check if the contour is a region of interest
-        if is_region_of_interest(contour):
-            x, y, w, h = cv2.boundingRect(contour)
+        if not is_region_of_interest(contour):
+            continue
 
-            # Crop the region of interest from the image
-            crop_img = img[y:y+h, x:x+w]
+        x, y, w, h = cv2.boundingRect(contour)
 
-            # Check if the region contains text using pytesseract
-            if contains_text(crop_img):
-                # Compute the color difference between the mean and peak color of the region
-                color_diff = compute_color_difference(crop_img)
+        # Crop the region of interest from the image
+        crop_img = img[y:y+h, x:x+w]
 
-                if color_diff < COLOR_DIFF_THRESHOLD:
-                    found_issue = True
-                    # Draw a purple rectangle around the region of interest
-                    cv2.rectangle(img_copy, (x, y),
-                                  (x+w, y+h), (255, 102, 0), 2)
+        # Check if the region contains text using pytesseract
+        if not contains_text(crop_img):
+            continue
+
+        # Compute the color difference between the mean and peak color of the region
+        color_diff = compute_color_difference(crop_img)
+
+        if color_diff < COLOR_DIFF_THRESHOLD:
+            found_issue = True
+
+            # Draw a purple rectangle around the region of interest
+            cv2.rectangle(img_copy, (x, y), (x+w, y+h), (255, 102, 0), 2)
 
     if found_issue:
         cv2.imwrite(save_path, img_copy)
@@ -51,6 +54,7 @@ def detect_color_contrast(img_path, save_path):
     else:
         print("no issues found")
         return ""
+
 
 
 def load_image(img_path):

@@ -2,6 +2,7 @@ import pytesseract
 import cv2
 import numpy as np
 import re
+from rtree import index
 
 # Constants
 MIN_CONTOUR_SIZE = 0
@@ -12,7 +13,6 @@ OVERLAP_THRESHOLD = 0.1
 
 
 def detect_text_overlap(img_path, save_path):
-
     # Load and preprocess the image
     img = load_image(img_path)
     gray = preprocess_image(img)
@@ -23,41 +23,35 @@ def detect_text_overlap(img_path, save_path):
     contours = find_contours(thresh)
     img_copy = img.copy()
     found_issue = False
+    regions_of_interest = []
+
     for i in range(len(contours)):
         # Check if the contour is a region of interest
-        if is_region_of_interest(contours[i]):
-            x1, y1, w1, h1 = cv2.boundingRect(contours[i])
+        if not is_region_of_interest(contours[i]):
+            continue  # Skip the rest of the loop body
+        x1, y1, w1, h1 = cv2.boundingRect(contours[i])
+        # Crop the region of interest from the image
+        crop_img1 = img[y1:y1+h1, x1:x1+w1]
+        # Check if the region contains text using pytesseract
+        if not contains_text(crop_img1):
+            continue  # Skip the rest of the loop body
+        regions_of_interest.append((x1, y1, w1, h1))
 
-            # Crop the region of interest from the image
-            crop_img1 = img[y1:y1+h1, x1:x1+w1]
+        for i in range(len(regions_of_interest)):
+            x1, y1, w1, h1 = regions_of_interest[i]
+            for j in range(i+1, len(regions_of_interest)):
+                x2, y2, w2, h2 = regions_of_interest[j]
+                # Compute the overlap ratio between the two regions
+                overlap_ratio = compute_overlap_ratio(
+                    x1, y1, w1, h1, x2, y2, w2, h2)
+                if overlap_ratio > OVERLAP_THRESHOLD:
+                    found_issue = True
+                    # Draw a red rectangle around the overlapping regions of interest
+                    cv2.rectangle(img_copy, (x1, y1),
+                                  (x1+w1, y1+h1), (0, 0, 255), 2)
+                    cv2.rectangle(img_copy, (x2, y2),
+                                  (x2+w2, y2+h2), (0, 0, 255), 2)
 
-            # Check if the region contains text using pytesseract
-            if contains_text(crop_img1):
-                # cv2.imshow('Region of Interest', crop_img1)
-                # cv2.waitKey(0)
-                for j in range(i+1, len(contours)):
-                    # Check if the other contour is a region of interest
-                    if is_region_of_interest(contours[j]):
-                        x2, y2, w2, h2 = cv2.boundingRect(contours[j])
-
-                        # Crop the other region of interest from the image
-                        crop_img2 = img[y2:y2+h2, x2:x2+w2]
-
-                        # Check if the other region contains text using pytesseract
-                        if contains_text(crop_img2):
-                            # Compute the overlap ratio between the two regions
-                            overlap_ratio = compute_overlap_ratio(
-                                x1, y1, w1, h1, x2, y2, w2, h2)
-
-                            if overlap_ratio > OVERLAP_THRESHOLD:
-                                found_issue = True
-                                # Draw a red rectangle around the overlapping regions of interest
-                                cv2.rectangle(img_copy, (x1, y1),
-                                              (x1+w1, y1+h1), (0, 0, 255), 2)
-                                cv2.rectangle(img_copy, (x2, y2),
-                                              (x2+w2, y2+h2), (0, 0, 255), 2)
-
-    # cv2.destroyAllWindows()
     if found_issue:
         cv2.imwrite(save_path, img_copy)
         return save_path
