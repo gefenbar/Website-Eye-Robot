@@ -108,7 +108,9 @@ def index():
                             # Set initial scroll position and section height
                             scroll_position = 0
                             section_height = int(resolution[1] * 0.8)
+
                             driver.execute_script("window.scrollTo(0, 0)")
+
                             # Capture screenshots of each section of the page
                             while scroll_position < page_height:
                                 driver.save_screenshot(
@@ -121,7 +123,7 @@ def index():
                                 driver.execute_script(
                                     f"window.scrollTo(0, {scroll_position})"
                                 )
-                                time.sleep(1)
+                                time.sleep(1.2)
 
                             links = driver.find_elements(By.TAG_NAME, "a")
 
