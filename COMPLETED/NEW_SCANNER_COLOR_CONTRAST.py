@@ -117,5 +117,5 @@ def compute_color_difference(crop_img):
     return color_diff
 
 
-detect_color_contrast(
-    '/home/gefen/Website-Eye-Robot/TESTS/test3.png', 'COLOR_CONTRAST.png')
+# detect_color_contrast(
+#     '/home/gefen/Website-Eye-Robot/TESTS/test3.png', 'COLOR_CONTRAST.png')

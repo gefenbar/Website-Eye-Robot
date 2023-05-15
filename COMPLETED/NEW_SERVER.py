@@ -10,25 +10,27 @@ import pandas as pd
 import io
 import cv2
 
-from flask import Flask, render_template, request, jsonify, url_for, make_response
+from flask import Flask, render_template, request, jsonify, url_for, make_response, send_file
+from flask_cors import CORS
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import StaleElementReferenceException
-from flask_cors import CORS
+
 from NEW_SCANNER_COLOR_CONTRAST import detect_color_contrast
 from NEW_SCANNER_SMALL_TEXT import detect_small_text
 from NEW_SCANNER_TEXT_OVERLAP import detect_text_overlap
-from flask import send_file
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+
 @app.route("/", methods=["GET"])
 def heartbeat():
     return "Website Eye Robot is up and running!"
+
 
 @app.route("/report", methods=["GET"])
 def get_report():
@@ -106,7 +108,7 @@ def index():
                             # Set initial scroll position and section height
                             scroll_position = 0
                             section_height = int(resolution[1] * 0.8)
-
+                            driver.execute_script("window.scrollTo(0, 0)")
                             # Capture screenshots of each section of the page
                             while scroll_position < page_height:
                                 driver.save_screenshot(
