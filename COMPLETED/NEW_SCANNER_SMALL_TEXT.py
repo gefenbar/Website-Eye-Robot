@@ -5,8 +5,8 @@ import re
 
 
 def detect_small_text(img_path, save_path):
-    # Load and resize the image
-    img = load_and_resize_image(img_path)
+    # Load the image
+    img = cv2.imread(img_path)
     height, width = img.shape[:2]
 
     # Calculate the minimum and maximum height of a region to be considered as containing small text
@@ -50,19 +50,6 @@ def detect_small_text(img_path, save_path):
         print("no issues found")
         return ""
 
-
-def load_and_resize_image(img_path):
-    # Load the image
-    img = cv2.imread(img_path)
-
-    # # Resize the image
-    # scale_percent = 100  # percent of original size
-    # width = int(img.shape[1] * scale_percent / 100)
-    # height = int(img.shape[0] * scale_percent / 100)
-    # dim = (width, height)
-    # img = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
-
-    return img
 
 
 def calculate_min_max_height(height):
@@ -117,5 +104,6 @@ def apply_morphological_operations(thresh):
     return thresh
 
 
-detect_small_text(
-    "/home/gefen/Website-Eye-Robot/screenshots_1920x1080/0_1_0.png", "SMALL_TEXT.png")
+# detect_small_text(
+#     "/home/gefen/Website-Eye-Robot/screenshots_1920x1080/0_1_864.png", "SMALL_TEXT.png")
+

@@ -52,6 +52,7 @@ def detect_color_contrast(img_path, save_path):
         print("no issues found")
         return ""
 
+
 def load_image(img_path):
     return cv2.imread(img_path)
 
@@ -67,7 +68,7 @@ def preprocess_image(img):
 def threshold_image(gray):
     return cv2.adaptiveThreshold(
         gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY_INV,11, 2)
+        cv2.THRESH_BINARY_INV, 11, 2)
 
 
 def apply_morphological_operations(thresh):
@@ -104,7 +105,8 @@ def is_region_of_interest(contour):
 
 def contains_text(crop_img):
     crop_img_gray = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
-    text = pytesseract.image_to_string(crop_img_gray, lang='en+heb',config='--psm 6')
+    text = pytesseract.image_to_string(
+        crop_img_gray, lang='en+heb', config='--psm 6')
     return re.search(r'\w', text)
 
 
@@ -115,4 +117,5 @@ def compute_color_difference(crop_img):
     return color_diff
 
 
-detect_color_contrast('/home/gefen/Website-Eye-Robot/screenshots_1366x768/1_1_0.png', 'COLOR_CONTRAST.png')
+detect_color_contrast(
+    '/home/gefen/Website-Eye-Robot/TESTS/test3.png', 'COLOR_CONTRAST.png')

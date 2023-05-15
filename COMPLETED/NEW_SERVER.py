@@ -1,3 +1,15 @@
+import time
+import os
+import torch
+import matplotlib.pyplot as plt
+import shutil
+import requests
+import threading
+import json
+import pandas as pd
+import io
+import cv2
+
 from flask import Flask, render_template, request, jsonify, url_for, make_response
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -5,30 +17,18 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import StaleElementReferenceException
-import time
-import os
-import torch
-import matplotlib.pyplot as plt
-import shutil
 from flask_cors import CORS
-import requests
-import threading
-import json
-import pandas as pd
 from NEW_SCANNER_COLOR_CONTRAST import detect_color_contrast
 from NEW_SCANNER_SMALL_TEXT import detect_small_text
 from NEW_SCANNER_TEXT_OVERLAP import detect_text_overlap
-
-import cv2
+from flask import send_file
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-
 @app.route("/", methods=["GET"])
 def heartbeat():
     return "Website Eye Robot is up and running!"
-
 
 @app.route("/report", methods=["GET"])
 def get_report():
@@ -214,7 +214,10 @@ def index():
                         </div>
                     """
                     html_list.append(html)
-                all_html = '\n'.join(html_list)
+                button_html = """
+    <button id="download-btn" onclick="downloadExcel()">Download Excel</button>
+"""
+                all_html = button_html+'\n'.join(html_list)
             else:
                 all_html = f"""
                 <div class="report-card">
