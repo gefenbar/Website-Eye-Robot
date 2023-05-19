@@ -1,30 +1,28 @@
 import time
 import os
-import torch
-import matplotlib.pyplot as plt
-import shutil
-import requests
 import threading
 import json
+import shutil
+import requests
 import pandas as pd
 import io
 import cv2
 
-from flask import Flask, render_template, request, jsonify, url_for, make_response
+from flask import Flask, render_template, request, jsonify, url_for, make_response, send_file
+from flask_cors import CORS
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import StaleElementReferenceException
-from flask_cors import CORS
+
 from NEW_SCANNER_COLOR_CONTRAST import detect_color_contrast
 from NEW_SCANNER_SMALL_TEXT import detect_small_text
 from NEW_SCANNER_TEXT_OVERLAP import detect_text_overlap
-from flask import send_file
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)
 
 @app.route("/", methods=["GET"])
 def heartbeat():
@@ -33,13 +31,11 @@ def heartbeat():
 @app.route("/report", methods=["GET"])
 def get_report():
     try:
-        f = open('data.json')
-        data = json.load(f)
-        f.close()
+        with open('data.json') as f:
+            data = json.load(f)
         return json.dumps(data)
-    except:
+    except FileNotFoundError:
         return jsonify({"message": 'Not found'}), 404
-
 
 @app.route("/report", methods=["POST"])
 def index():
@@ -52,12 +48,10 @@ def index():
         # Define the data variable as an empty dictionary
         data = {}
 
-        def main_task(**kwargs):
-            page_urls = []
-            url = kwargs.get('url', '')
-            driver = webdriver.Chrome()
+        def main_task(url, page_urls):
             resolutions = [(1920, 1080), (1366, 768), (375, 667)]
 
+            driver = webdriver.Chrome()
             try:
                 # Open URL in web driver and add it to the page_urls list
                 driver.get(url)
@@ -107,6 +101,8 @@ def index():
                             scroll_position = 0
                             section_height = int(resolution[1] * 0.8)
 
+                            driver.execute_script("window.scrollTo(0, 0)")
+
                             # Capture screenshots of each section of the page
                             while scroll_position < page_height:
                                 driver.save_screenshot(
@@ -119,7 +115,7 @@ def index():
                                 driver.execute_script(
                                     f"window.scrollTo(0, {scroll_position})"
                                 )
-                                time.sleep(0.2)
+                                time.sleep(1.2)
 
                             links = driver.find_elements(By.TAG_NAME, "a")
 
@@ -148,7 +144,6 @@ def index():
                 'color_contrast': 'color_contrast_results',
                 'small_text': 'small_text_results',
                 'text_overlap': 'text_overlap_results'
-
             }
 
             create_parent_folders_for_scanners(base_path, scanner_folder_names)
@@ -160,39 +155,57 @@ def index():
             ]
 
             report_cards = []
+            issue_found = False
+            
+            lock = threading.Lock()
+            threads_list = []
+            
+            def process_image(img_path, resolution):
+                nonlocal issue_found
+                i = 0
+                for scanner_name, result_folder_name in scanner_folder_names.items():
+                    result_folder_path = os.path.join(
+                        base_path, result_folder_name)
+                    filename_prefix = f"{scanner_name}_"
+                    save_path = os.path.join(
+                        result_folder_path, filename_prefix + str(i) + "_" + filename)
+                    i += 1
 
+                    if scanner_name == 'color_contrast':
+                        issue = detect_color_contrast(
+                            img_path, save_path)
+                    elif scanner_name == 'small_text':
+                        issue = detect_small_text(img_path, save_path)
+                    elif scanner_name == 'text_overlap':
+                        issue = detect_text_overlap(
+                            img_path, save_path)
+
+                    if issue:
+                        with lock:
+                            issue_found = True
+                            page_index = page_urls.index(url)
+                            report_cards.append({
+                                'name': scanner_name.replace('_', ' ').title(),
+                                'image': issue.replace('home/gefen/Website-Eye-Robot/', ''),
+                                'resolution': resolution,
+                                'page_url': page_urls[page_index]
+                            })
+
+            
             for folder_path in folder_paths:
+                resolution = folder_path.replace('/home/gefen/Website-Eye-Robot/screenshots_', '')
                 for filename in os.listdir(folder_path):
                     if filename.endswith('.jpg') or filename.endswith('.png'):
                         img_path = os.path.join(folder_path, filename)
                         print(f"Processing {img_path}")
 
-                        for scanner_name, result_folder_name in scanner_folder_names.items():
-                            result_folder_path = os.path.join(
-                                base_path, result_folder_name)
-                            filename_prefix = f"{scanner_name}_"
-                            save_path = os.path.join(
-                                result_folder_path, filename_prefix + str(i) + "_" + filename)
-                            i += 1
+                        t = threading.Thread(target=process_image, args=(img_path, resolution))
+                        t.start()
+                        threads_list.append(t)
 
-                            if scanner_name == 'color_contrast':
-                                issue = detect_color_contrast(
-                                    img_path, save_path)
-                            elif scanner_name == 'small_text':
-                                issue = detect_small_text(img_path, save_path)
-                            elif scanner_name == 'text_overlap':
-                                issue = detect_text_overlap(
-                                    img_path, save_path)
-
-                            if issue:
-                                issue_found = True
-                                page_index = page_urls.index(url)
-                                report_cards.append({
-                                    'name': scanner_name.replace('_', ' ').title(),
-                                    'image': issue.replace('home/gefen/Website-Eye-Robot/', ''),
-                                    'resolution': folder_path.replace('/home/gefen/Website-Eye-Robot/screenshots_', ''),
-                                    'page_url': page_urls[page_index]
-                                })
+                        
+            for t in threads_list:
+                t.join()
 
             if issue_found:
                 html_list = []
@@ -208,69 +221,65 @@ def index():
                         </div>
                         <div class="card-screenshot">
                         <a>
-                        <img class="screenshot-img" src='{report_card['image']}' alt="Screenshot of Issue #{report_card['name']}">
+                        <img class="screenshot-img" src='{report_card['image']}'></img>
                         </a>
                         </div>
-                        </div>
+                    </div>
                     """
                     html_list.append(html)
+
+                html_output = "\n".join(html_list)
                 button_html = """
-    <button id="download-btn" onclick="downloadExcel()">Download Excel</button>
-"""
-                all_html = button_html+'\n'.join(html_list)
+                    <button id="download-btn" onclick="downloadExcel()">Download Excel</button>
+                    """
+                data[url] = button_html+html_output
             else:
-                all_html = f"""
-                <div class="report-card">
-                    <div class="card-header">
-                        <h3> No issues found</h3>
-                    </div>
-                </div>
-                """
-            print("FINISHED")
+                data[url] = "<p>No issues found.</p>"
 
-            data[url] = all_html
-            with open('data.json', 'w', encoding='utf-8') as f:
-                json.dump(data, f, ensure_ascii=False, indent=4)
+            # Save data to a JSON file
+            with open('data.json', 'w') as f:
+                json.dump(data, f)
 
-        thread = threading.Thread(target=main_task,
-                                  kwargs={'url': input_url})
-        thread.start()
-        return 'ok'
+        # Create a list to store the URLs of the pages visited
+        page_urls = []
+
+        # Create a thread for the main task
+        main_thread = threading.Thread(target=main_task, args=(input_url, page_urls))
+        main_thread.start()
+
+        return jsonify({"message": "Task started successfully."}), 200
 
 
 def delete_existing_folders_and_files():
-    if os.path.exists('/home/gefen/Website-Eye-Robot/screenshots_375x667'):
-        shutil.rmtree('/home/gefen/Website-Eye-Robot/screenshots_375x667')
-    if os.path.exists('/home/gefen/Website-Eye-Robot/screenshots_1366x768'):
-        shutil.rmtree('/home/gefen/Website-Eye-Robot/screenshots_1366x768')
-    if os.path.exists('/home/gefen/Website-Eye-Robot/screenshots_1920x1080'):
-        shutil.rmtree('/home/gefen/Website-Eye-Robot/screenshots_1920x1080')
-    if os.path.exists('/home/gefen/Website-Eye-Robot/small_text_results'):
-        shutil.rmtree('/home/gefen/Website-Eye-Robot/small_text_results')
-    if os.path.exists('/home/gefen/Website-Eye-Robot/color_contrast_results/'):
-        shutil.rmtree('/home/gefen/Website-Eye-Robot/color_contrast_results/')
-    if os.path.exists('/home/gefen/Website-Eye-Robot/small_text_results/'):
-        shutil.rmtree('/home/gefen/Website-Eye-Robot/small_text_results/')
-    if os.path.exists('/home/gefen/Website-Eye-Robot/text_overlap_results/'):
-        shutil.rmtree(
-            '/home/gefen/Website-Eye-Robot/text_overlap_results/')
-    if os.path.exists("data.json"):
-        os.remove("data.json")
+    folders = [
+        'screenshots_1920x1080',
+        'screenshots_1366x768',
+        'screenshots_375x667',
+        'color_contrast_results',
+        'small_text_results',
+        'text_overlap_results',
+    ]
+
+    for folder in folders:
+        if os.path.exists(folder):
+            shutil.rmtree(folder)
+
+    if os.path.exists('data.json'):
+        os.remove('data.json')
 
 
 def create_directories_for_screenshots():
-    os.makedirs("screenshots_1920x1080", exist_ok=True)
-    os.makedirs("screenshots_1366x768", exist_ok=True)
-    os.makedirs("screenshots_375x667", exist_ok=True)
+    resolutions = ['1920x1080', '1366x768', '375x667']
+
+    for resolution in resolutions:
+        folder_name = f"screenshots_{resolution}"
+        os.makedirs(folder_name, exist_ok=True)
 
 
-def create_parent_folders_for_scanners(base_path: str,
-                                       scanner_folder_names: dict):
+def create_parent_folders_for_scanners(base_path, scanner_folder_names):
     for folder_name in scanner_folder_names.values():
-        scanner_folder_path = os.path.join(base_path, folder_name)
-        if not os.path.exists(scanner_folder_path):
-            os.makedirs(scanner_folder_path)
-
+        folder_path = os.path.join(base_path, folder_name)
+        os.makedirs(folder_path, exist_ok=True)
 
 if __name__ == '__main__':
     app.run(port=3002)

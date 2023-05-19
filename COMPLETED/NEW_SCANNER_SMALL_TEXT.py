@@ -5,105 +5,80 @@ import re
 
 
 def detect_small_text(img_path, save_path):
-    # Load the image
     img = cv2.imread(img_path)
     height, width = img.shape[:2]
-
-    # Calculate the minimum and maximum height of a region to be considered as containing small text
-    MIN_HEIGHT, MAX_HEIGHT = calculate_min_max_height(height)
-
-    # Preprocess the image
+    min_height, max_height = calculate_min_max_height(height)
     gray = preprocess_image(img)
-
-    # Apply adaptive thresholding to the grayscale image
-    thresh = cv2.adaptiveThreshold(
-        gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
-
-    # Apply morphological operations to the thresholded image
-    thresh = apply_morphological_operations(thresh)
-
-    # Find contours in the thresholded image
-    contours, hierarchy = cv2.findContours(
-        thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    thresh = apply_thresholding(gray)
+    contours = find_contours(thresh)
 
     img_copy = img.copy()
     found_issue = False
+
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
-        if h < MIN_HEIGHT or h > MAX_HEIGHT:
-            continue
-        cropped_img = img[y:y+h, x:x+w]
-        text = pytesseract.image_to_string(cropped_img, lang='eng+heb')
-        if not text.strip():
-            continue
 
-        # Check if the text is a letter or word or sentence using regex pattern matching.
-        pattern = re.compile(r'^\w+$')
-        if pattern.match(text):
-            found_issue = True
-            cv2.rectangle(img_copy, (x, y), (x+w, y+h), (0, 255, 127), 2)
+        if (min_height <= h <= max_height):
+            cropped_img = img[y:y+h, x:x+w]
+            text = pytesseract.image_to_string(cropped_img, lang='eng+heb')
+            if text.strip():
+                if is_valid_text(text):
+                    found_issue = True
+                    cv2.rectangle(img_copy, (x, y),
+                                  (x+w, y+h), (0, 255, 127), 2)
 
     if found_issue:
         cv2.imwrite(save_path, img_copy)
         return save_path
     else:
-        print("no issues found")
+        print("No issues found")
         return ""
 
 
-
 def calculate_min_max_height(height):
-    # The minimum height of a region to be considered as containing small text
     reference_height = 1080
     min_height = 0
     max_height = 20
     ratio = height / reference_height
-
-    MIN_HEIGHT = int(ratio * min_height)  # adjust based on image resolution
-
-    # The maximum height of a region to be considered as containing small text
-    MAX_HEIGHT = int(ratio * max_height)  # adjust based on image resolution
-
-    return MIN_HEIGHT, MAX_HEIGHT
+    min_height = int(ratio * min_height)
+    max_height = int(ratio * max_height)
+    return min_height, max_height
 
 
 def preprocess_image(img):
-    # Convert the image to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # Apply histogram equalization to the grayscale image
     gray = cv2.equalizeHist(gray)
-    # Enhance contrast using CLAHE
     clahe = cv2.createCLAHE(clipLimit=5.0, tileGridSize=(4, 4))
     gray = clahe.apply(gray)
-
-    # Apply noise removal to the grayscale image using Gaussian blur
     gray = cv2.GaussianBlur(gray, (1, 3), 0)
-
-    # Sharpen the image using a kernel
     kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
     gray = cv2.filter2D(gray, -1, kernel)
-
     return gray
 
 
-def apply_morphological_operations(thresh):
-    # Define the kernel size and shape for morphological operations
-    kernel_size = 1
-    kernel_shape = cv2.MORPH_ELLIPSE
-
-    # Create the kernel for morphological operations
-    kernel = cv2.getStructuringElement(
-        kernel_shape, (kernel_size, kernel_size))
-
-    # Apply morphological closing operation
-    thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-
-    # Apply morphological opening operation
-    thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
-
+def apply_thresholding(gray):
+    thresh = cv2.adaptiveThreshold(
+        gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
+    thresh = apply_morphological_operations(thresh)
     return thresh
 
 
-# detect_small_text(
-#     "/home/gefen/Website-Eye-Robot/screenshots_1920x1080/0_1_864.png", "SMALL_TEXT.png")
+def apply_morphological_operations(thresh):
+    kernel_size = 1
+    kernel_shape = cv2.MORPH_ELLIPSE
+    kernel = cv2.getStructuringElement(
+        kernel_shape, (kernel_size, kernel_size))
+    thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+    thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    return thresh
 
+
+def find_contours(thresh):
+    contours, _ = cv2.findContours(
+        thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    return contours
+
+
+def is_valid_text(text):
+    pattern = re.compile(r'^\w+$')
+    return pattern.match(text) is not None
