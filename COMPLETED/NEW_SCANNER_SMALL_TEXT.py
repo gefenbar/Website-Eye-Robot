@@ -104,6 +104,6 @@ def apply_morphological_operations(thresh):
     return thresh
 
 
-detect_small_text(
-    "/home/gefen/Website-Eye-Robot/x.jpg", "SMALL_TEXT.png")
+# detect_small_text(
+#     "/home/gefen/Website-Eye-Robot/screenshots_1920x1080/0_1_864.png", "SMALL_TEXT.png")
 
