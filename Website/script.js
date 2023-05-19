@@ -151,7 +151,7 @@ function downloadExcel() {
     })
     .then((data) => {
       // Extract the HTML string from the data
-      const htmlString = data['http://127.0.0.1:3000/Website/index.html'];
+      const htmlString = data['http://127.0.0.1:3003/Website/index.html'];
 
       // Parse the HTML string
       const parser = new DOMParser();
@@ -177,9 +177,9 @@ function downloadExcel() {
 
       // Set the width of the columns
       newWorksheet['!cols'] = [
-        { wch: 20 }, // "Issue Name" column
+        { wch: 50 }, // "Issue Name" column
         { wch: 50 }, // "Page URL" column
-        { wch: 20 }, // "Resolution" column
+        { wch: 50 }, // "Resolution" column
         { wch: 50 }, // "Image" column
       ];
 

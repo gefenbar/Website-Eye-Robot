@@ -2,6 +2,7 @@ import pytesseract
 import cv2
 import numpy as np
 import re
+from concurrent.futures import ThreadPoolExecutor
 
 # Constants
 MIN_CONTOUR_SIZE = 0
@@ -9,7 +10,6 @@ MIN_ASPECT_RATIO = 0
 MAX_ASPECT_RATIO = 100
 MIN_SOLIDITY = 0
 COLOR_DIFF_THRESHOLD = 80
-
 
 def detect_color_contrast(img_path, save_path):
     # Load and preprocess the image
@@ -25,24 +25,19 @@ def detect_color_contrast(img_path, save_path):
     img_copy = img.copy()
     found_issue = False
 
-    for contour in contours:
-        # Check if the contour is a region of interest
-        if not is_region_of_interest(contour):
-            continue
+    # Filter contours based on criteria
+    filtered_contours = [contour for contour in contours if is_region_of_interest(contour)]
 
-        x, y, w, h = cv2.boundingRect(contour)
+    # Prepare regions of interest for text detection
+    regions_of_interest = [(cv2.boundingRect(contour), img.copy()) for contour in filtered_contours]
 
-        # Crop the region of interest from the image
-        crop_img = img[y:y+h, x:x+w]
+    # Perform text detection and color difference calculations concurrently
+    with ThreadPoolExecutor() as executor:
+        futures = [executor.submit(process_region, region) for region in regions_of_interest]
+        results = [future.result() for future in futures]
 
-        # Check if the region contains text using pytesseract
-        if not contains_text(crop_img):
-            continue
-
-        # Compute the color difference between the mean and peak color of the region
-        color_diff = compute_color_difference(crop_img)
-
-        if color_diff < COLOR_DIFF_THRESHOLD:
+    for (x, y, w, h), region_copy, has_text, color_diff in results:
+        if has_text and color_diff < COLOR_DIFF_THRESHOLD:
             found_issue = True
 
             # Draw a purple rectangle around the region of interest
@@ -54,7 +49,6 @@ def detect_color_contrast(img_path, save_path):
     else:
         print("no issues found")
         return ""
-
 
 
 def load_image(img_path):
@@ -107,6 +101,21 @@ def is_region_of_interest(contour):
     return True
 
 
+def process_region(region):
+    (x, y, w, h), img_copy = region
+
+    # Crop the region of interest from the image
+    crop_img = img_copy[y:y+h, x:x+w]
+
+    # Check if the region contains text using pytesseract
+    has_text = contains_text(crop_img)
+
+    # Compute the color difference between the mean and peak color of the region
+    color_diff = compute_color_difference(crop_img)
+
+    return (x, y, w, h), img_copy, has_text, color_diff
+
+
 def contains_text(crop_img):
     crop_img_gray = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
     text = pytesseract.image_to_string(
@@ -121,5 +130,5 @@ def compute_color_difference(crop_img):
     return color_diff
 
 
-# detect_color_contrast(
-#     '/home/gefen/Website-Eye-Robot/TESTS/test3.png', 'COLOR_CONTRAST.png')
+detect_color_contrast(
+    '/home/gefen/Website-Eye-Robot/TESTS/COLOR_CONTRAST/8.png', 'COLOR_CONTRAST.png')

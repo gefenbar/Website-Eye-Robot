@@ -6,7 +6,7 @@ from rtree import index
 
 # Constants
 MIN_CONTOUR_SIZE = 0
-MIN_ASPECT_RATIO = 0.1
+MIN_ASPECT_RATIO = 0
 MAX_ASPECT_RATIO = 3000
 MIN_SOLIDITY = 0
 OVERLAP_THRESHOLD = 0.1
@@ -135,4 +135,4 @@ def compute_overlap_ratio(x1, y1, w1, h1, x2, y2, w2, h2):
 
     return overlap_ratio
 
-# detect_text_overlap("/home/gefen/Website-Eye-Robot/screenshots_375x667/2_1_0.png", "TEXT_OVERLAP.png")
+# detect_text_overlap("/home/gefen/Website-Eye-Robot/TEXT_OVERLAP/14.PNG", "TEXT_OVERLAP.png")

@@ -1,14 +1,10 @@
 import time
 import os
-import torch
-import matplotlib.pyplot as plt
 import shutil
 import requests
 import threading
 import json
-import pandas as pd
-import io
-import cv2
+
 
 from flask import Flask, render_template, request, jsonify, url_for, make_response, send_file
 from flask_cors import CORS
@@ -243,21 +239,20 @@ def index():
 
 
 def delete_existing_folders_and_files():
-    if os.path.exists('/home/gefen/Website-Eye-Robot/screenshots_375x667'):
-        shutil.rmtree('/home/gefen/Website-Eye-Robot/screenshots_375x667')
-    if os.path.exists('/home/gefen/Website-Eye-Robot/screenshots_1366x768'):
-        shutil.rmtree('/home/gefen/Website-Eye-Robot/screenshots_1366x768')
-    if os.path.exists('/home/gefen/Website-Eye-Robot/screenshots_1920x1080'):
-        shutil.rmtree('/home/gefen/Website-Eye-Robot/screenshots_1920x1080')
-    if os.path.exists('/home/gefen/Website-Eye-Robot/small_text_results'):
-        shutil.rmtree('/home/gefen/Website-Eye-Robot/small_text_results')
-    if os.path.exists('/home/gefen/Website-Eye-Robot/color_contrast_results/'):
-        shutil.rmtree('/home/gefen/Website-Eye-Robot/color_contrast_results/')
-    if os.path.exists('/home/gefen/Website-Eye-Robot/small_text_results/'):
-        shutil.rmtree('/home/gefen/Website-Eye-Robot/small_text_results/')
-    if os.path.exists('/home/gefen/Website-Eye-Robot/text_overlap_results/'):
-        shutil.rmtree(
-            '/home/gefen/Website-Eye-Robot/text_overlap_results/')
+    directories = [
+        '/home/gefen/Website-Eye-Robot/screenshots_375x667',
+        '/home/gefen/Website-Eye-Robot/screenshots_1366x768',
+        '/home/gefen/Website-Eye-Robot/screenshots_1920x1080',
+        '/home/gefen/Website-Eye-Robot/small_text_results',
+        '/home/gefen/Website-Eye-Robot/color_contrast_results/',
+        '/home/gefen/Website-Eye-Robot/small_text_results/',
+        '/home/gefen/Website-Eye-Robot/text_overlap_results/'
+    ]
+
+    for directory in directories:
+        if os.path.exists(directory):
+            shutil.rmtree(directory)
+
     if os.path.exists("data.json"):
         os.remove("data.json")
 
