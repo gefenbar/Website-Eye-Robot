@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-def detect_cropped_content(img_path, save_path):
+def detect_cropped_elements(img, save_path):
     # Load the image
     img = cv2.imread(img_path)
 
@@ -49,3 +49,5 @@ def detect_cropped_content(img_path, save_path):
     else:
         print("no issues found")
         return ""
+
+
