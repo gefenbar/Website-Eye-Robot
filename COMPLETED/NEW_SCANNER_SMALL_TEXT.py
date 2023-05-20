@@ -19,13 +19,13 @@ def detect_small_text(img_path, save_path):
         x, y, w, h = cv2.boundingRect(contour)
 
         if (min_height <= h <= max_height):
-            cropped_img = img[y:y+h, x:x+w]
-            text = pytesseract.image_to_string(cropped_img, lang='eng+heb')
-            if text.strip():
-                if is_valid_text(text):
-                    found_issue = True
-                    cv2.rectangle(img_copy, (x, y),
-                                  (x+w, y+h), (0, 255, 127), 2)
+            crop_img = img[y:y+h, x:x+w]
+            # text = pytesseract.image_to_string(cropped_img, lang='eng+heb')
+            # if text.strip():
+            if contains_text(crop_img):
+                found_issue = True
+                cv2.rectangle(img_copy, (x, y),
+                              (x+w, y+h), (0, 255, 127), 2)
 
     if found_issue:
         cv2.imwrite(save_path, img_copy)
@@ -37,8 +37,8 @@ def detect_small_text(img_path, save_path):
 
 def calculate_min_max_height(height):
     reference_height = 1080
-    min_height = 0
-    max_height = 20
+    min_height = 1
+    max_height = 14
     ratio = height / reference_height
     min_height = int(ratio * min_height)
     max_height = int(ratio * max_height)
@@ -79,6 +79,11 @@ def find_contours(thresh):
     return contours
 
 
-def is_valid_text(text):
-    pattern = re.compile(r'^\w+$')
-    return pattern.match(text) is not None
+
+def contains_text(crop_img):
+    crop_img_gray = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
+    text = pytesseract.image_to_string(
+        crop_img_gray, lang='en+heb', config='--psm 6')
+    return re.search(r'\w', text)
+
+# detect_text_overlap("/home/gefen/Website-Eye-Robot/screenshots_375x667/2_1_0.png", "TEXT_OVERLAP.png")

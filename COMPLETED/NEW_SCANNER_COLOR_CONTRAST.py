@@ -6,9 +6,9 @@ import re
 # Constants
 MIN_CONTOUR_SIZE = 0
 MIN_ASPECT_RATIO = 0
-MAX_ASPECT_RATIO = 100
+MAX_ASPECT_RATIO = 300
 MIN_SOLIDITY = 0
-COLOR_DIFF_THRESHOLD = 80
+COLOR_DIFF_THRESHOLD = 77
 
 
 def detect_color_contrast(img_path, save_path):
@@ -31,7 +31,8 @@ def detect_color_contrast(img_path, save_path):
 
                 if color_diff < COLOR_DIFF_THRESHOLD:
                     found_issue = True
-                    cv2.rectangle(img_copy, (x, y), (x+w, y+h), (255, 102, 0), 2)
+                    cv2.rectangle(img_copy, (x, y),
+                                  (x+w, y+h), (255, 102, 0), 2)
 
     if found_issue:
         cv2.imwrite(save_path, img_copy)
@@ -60,7 +61,8 @@ def threshold_image(gray):
 def apply_morphological_operations(thresh):
     kernel_size = 7
     kernel_shape = cv2.MORPH_ELLIPSE
-    kernel = cv2.getStructuringElement(kernel_shape, (kernel_size, kernel_size))
+    kernel = cv2.getStructuringElement(
+        kernel_shape, (kernel_size, kernel_size))
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
     return thresh
@@ -85,7 +87,8 @@ def is_region_of_interest(contour):
 
 def contains_text(crop_img):
     crop_img_gray = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
-    text = pytesseract.image_to_string(crop_img_gray, lang='en+heb', config='--psm 6')
+    text = pytesseract.image_to_string(
+        crop_img_gray, lang='en+heb', config='--psm 6')
     return re.search(r'\w', text)
 
 
@@ -94,7 +97,3 @@ def compute_color_difference(crop_img):
     peak_color = np.max(crop_img, axis=(0, 1))
     color_diff = np.linalg.norm(mean_color - peak_color)
     return color_diff
-
-
-# detect_color_contrast(
-#     '/home/gefen/Website-Eye-Robot/TESTS/test3.png', 'COLOR_CONTRAST.png')

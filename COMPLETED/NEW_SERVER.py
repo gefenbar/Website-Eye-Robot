@@ -282,4 +282,5 @@ def create_parent_folders_for_scanners(base_path, scanner_folder_names):
         os.makedirs(folder_path, exist_ok=True)
 
 if __name__ == '__main__':
+    # delete_existing_folders_and_files()
     app.run(port=3002)
