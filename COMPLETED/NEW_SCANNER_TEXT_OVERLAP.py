@@ -13,13 +13,24 @@ OVERLAP_THRESHOLD = 0.1
 
 def detect_text_overlap(img_path, save_path):
     img = load_image(img_path)
+    cv2.imwrite("original_image.jpg", img)
+
     gray = preprocess_image(img)
+    cv2.imwrite("grayscale_image.jpg", gray)
+
     thresh = threshold_image(gray)
+    cv2.imwrite("thresholded_image.jpg", thresh)
+
     thresh = apply_morphological_operations(thresh)
+    cv2.imwrite("morphological_operations.jpg", thresh)
+
     contours = find_contours(thresh)
     img_copy = img.copy()
     found_issue = False
 
+   # Visualize contours
+    cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
+    cv2.imwrite("contours.jpg", img_copy)
     for i, contour1 in enumerate(contours):
         if is_region_of_interest(contour1):
             x1, y1, w1, h1 = cv2.boundingRect(contour1)
@@ -117,4 +128,4 @@ def compute_overlap_ratio(x1, y1, w1, h1, x2, y2, w2, h2):
 
     return overlap_ratio
 
-# detect_text_overlap("/home/gefen/Website-Eye-Robot/screenshots_375x667/2_1_0.png", "TEXT_OVERLAP.png")
+detect_text_overlap("/home/gefen/Website-Eye-Robot/screenshots_375x667/2_1_533.png", "TEXT_OVERLAP.png")

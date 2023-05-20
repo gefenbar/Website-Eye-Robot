@@ -13,9 +13,17 @@ COLOR_DIFF_THRESHOLD = 77
 
 def detect_color_contrast(img_path, save_path):
     img = load_image(img_path)
+    cv2.imwrite("original_image.jpg", img)
+
     gray = preprocess_image(img)
+    cv2.imwrite("grayscale_image.jpg", gray)
+
     thresh = threshold_image(gray)
+    cv2.imwrite("thresholded_image.jpg", thresh)
+
     thresh = apply_morphological_operations(thresh)
+    cv2.imwrite("morphological_operations.jpg", thresh)
+
     contours = find_contours(thresh)
 
     img_copy = img.copy()
@@ -88,7 +96,7 @@ def is_region_of_interest(contour):
 def contains_text(crop_img):
     crop_img_gray = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
     text = pytesseract.image_to_string(
-        crop_img_gray, lang='en+heb', config='--psm 6')
+        crop_img_gray, lang='en+heb', config='--psm 6 --oem 1')
     return re.search(r'\w', text)
 
 
@@ -97,3 +105,7 @@ def compute_color_difference(crop_img):
     peak_color = np.max(crop_img, axis=(0, 1))
     color_diff = np.linalg.norm(mean_color - peak_color)
     return color_diff
+
+
+detect_color_contrast(
+    "/home/gefen/Website-Eye-Robot/screenshots_1366x768/1_1_0.png", "COLOR_CONTRAST.png")

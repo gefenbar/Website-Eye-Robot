@@ -5,11 +5,11 @@ import re
 
 
 def detect_small_text(img_path, save_path):
-    img = cv2.imread(img_path)
+    img = load_image(img_path)
     height, width = img.shape[:2]
     min_height, max_height = calculate_min_max_height(height)
     gray = preprocess_image(img)
-    thresh = apply_thresholding(gray)
+    thresh = threshold_image(gray)
     contours = find_contours(thresh)
 
     img_copy = img.copy()
@@ -20,8 +20,6 @@ def detect_small_text(img_path, save_path):
 
         if (min_height <= h <= max_height):
             crop_img = img[y:y+h, x:x+w]
-            # text = pytesseract.image_to_string(cropped_img, lang='eng+heb')
-            # if text.strip():
             if contains_text(crop_img):
                 found_issue = True
                 cv2.rectangle(img_copy, (x, y),
@@ -33,6 +31,11 @@ def detect_small_text(img_path, save_path):
     else:
         print("No issues found")
         return ""
+
+
+def load_image(img_path):
+    return cv2.imread(img_path)
+
 
 
 def calculate_min_max_height(height):
@@ -56,7 +59,7 @@ def preprocess_image(img):
     return gray
 
 
-def apply_thresholding(gray):
+def threshold_image(gray):
     thresh = cv2.adaptiveThreshold(
         gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
     thresh = apply_morphological_operations(thresh)
