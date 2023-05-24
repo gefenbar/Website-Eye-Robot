@@ -24,9 +24,11 @@ from NEW_SCANNER_TEXT_OVERLAP import detect_text_overlap
 app = Flask(__name__)
 CORS(app)
 
+
 @app.route("/", methods=["GET"])
 def heartbeat():
     return "Website Eye Robot is up and running!"
+
 
 @app.route("/report", methods=["GET"])
 def get_report():
@@ -36,6 +38,7 @@ def get_report():
         return json.dumps(data)
     except FileNotFoundError:
         return jsonify({"message": 'Not found'}), 404
+
 
 @app.route("/report", methods=["POST"])
 def index():
@@ -86,6 +89,8 @@ def index():
                         visited_pages_resolution.add(current_url)
 
                         try:
+                            driver.execute_script(
+                                "document.body.style.overflow = 'hidden';")
                             # Wait for the page to finish loading completely
                             WebDriverWait(driver, 10).until(
                                 EC.presence_of_element_located(
@@ -156,10 +161,10 @@ def index():
 
             report_cards = []
             issue_found = False
-            
+
             lock = threading.Lock()
             threads_list = []
-            
+
             def process_image(img_path, resolution):
                 nonlocal issue_found
                 i = 0
@@ -191,19 +196,19 @@ def index():
                                 'page_url': page_urls[page_index]
                             })
 
-            
             for folder_path in folder_paths:
-                resolution = folder_path.replace('/home/gefen/Website-Eye-Robot/screenshots_', '')
+                resolution = folder_path.replace(
+                    '/home/gefen/Website-Eye-Robot/screenshots_', '')
                 for filename in os.listdir(folder_path):
                     if filename.endswith('.jpg') or filename.endswith('.png'):
                         img_path = os.path.join(folder_path, filename)
                         print(f"Processing {img_path}")
 
-                        t = threading.Thread(target=process_image, args=(img_path, resolution))
+                        t = threading.Thread(
+                            target=process_image, args=(img_path, resolution))
                         t.start()
                         threads_list.append(t)
 
-                        
             for t in threads_list:
                 t.join()
 
@@ -244,7 +249,8 @@ def index():
         page_urls = []
 
         # Create a thread for the main task
-        main_thread = threading.Thread(target=main_task, args=(input_url, page_urls))
+        main_thread = threading.Thread(
+            target=main_task, args=(input_url, page_urls))
         main_thread.start()
 
         return jsonify({"message": "Task started successfully."}), 200
@@ -280,6 +286,7 @@ def create_parent_folders_for_scanners(base_path, scanner_folder_names):
     for folder_name in scanner_folder_names.values():
         folder_path = os.path.join(base_path, folder_name)
         os.makedirs(folder_path, exist_ok=True)
+
 
 if __name__ == '__main__':
     # delete_existing_folders_and_files()

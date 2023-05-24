@@ -106,7 +106,8 @@ def is_region_of_interest(contour):
 
 def contains_text(crop_img):
     crop_img_gray = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
-    text = pytesseract.image_to_string(crop_img_gray, config='--psm 6')
+    text = pytesseract.image_to_string(
+        crop_img_gray, lang='en+heb', config='--psm 6 --oem 1')
     return re.search(r'\w', text)
 
 
@@ -128,4 +129,6 @@ def compute_overlap_ratio(x1, y1, w1, h1, x2, y2, w2, h2):
 
     return overlap_ratio
 
-detect_text_overlap("/home/gefen/Website-Eye-Robot/screenshots_375x667/2_1_533.png", "TEXT_OVERLAP.png")
+
+# detect_text_overlap(
+#     "/home/gefen/Website-Eye-Robot/screenshots_1920x1080/0_3_0.png", "TEXT_OVERLAP.png")

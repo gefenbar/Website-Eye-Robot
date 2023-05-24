@@ -13,16 +13,16 @@ COLOR_DIFF_THRESHOLD = 77
 
 def detect_color_contrast(img_path, save_path):
     img = load_image(img_path)
-    cv2.imwrite("original_image.jpg", img)
+    # cv2.imwrite("original_image.jpg", img)
 
     gray = preprocess_image(img)
-    cv2.imwrite("grayscale_image.jpg", gray)
-
+    # cv2.imwrite("grayscale_image.jpg", gray)
+ 
     thresh = threshold_image(gray)
-    cv2.imwrite("thresholded_image.jpg", thresh)
+    # cv2.imwrite("thresholded_image.jpg", thresh)
 
     thresh = apply_morphological_operations(thresh)
-    cv2.imwrite("morphological_operations.jpg", thresh)
+    # cv2.imwrite("morphological_operations.jpg", thresh)
 
     contours = find_contours(thresh)
 
@@ -108,4 +108,4 @@ def compute_color_difference(crop_img):
 
 
 detect_color_contrast(
-    "/home/gefen/Website-Eye-Robot/screenshots_1366x768/1_1_0.png", "COLOR_CONTRAST.png")
+    "/home/gefen/Website-Eye-Robot/TESTS/COLOR_CONTRAST/7.png", "COLOR_CONTRAST.png")
