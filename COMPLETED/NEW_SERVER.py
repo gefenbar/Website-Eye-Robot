@@ -148,7 +148,9 @@ def index():
             scanner_folder_names = {
                 'color_contrast': 'color_contrast_results',
                 'small_text': 'small_text_results',
-                'text_overlap': 'text_overlap_results'
+                'text_overlap': 'text_overlap_results',
+                'edge_overflow': 'edge_overflow_results',
+                'content_overflow': 'content_overflow_results'
             }
 
             create_parent_folders_for_scanners(base_path, scanner_folder_names)
@@ -182,6 +184,13 @@ def index():
                     elif scanner_name == 'small_text':
                         issue = detect_small_text(img_path, save_path)
                     elif scanner_name == 'text_overlap':
+                        issue = detect_text_overlap(
+                            img_path, save_path)
+                    elif scanner_name == 'edge_overflow':
+                        issue = detect_text_overlap(
+                            img_path, save_path)
+
+                    elif scanner_name == 'content_overflow':
                         issue = detect_text_overlap(
                             img_path, save_path)
 
@@ -264,6 +273,8 @@ def delete_existing_folders_and_files():
         'color_contrast_results',
         'small_text_results',
         'text_overlap_results',
+        'edge_overflow_results',
+        'content_overflow_result'
     ]
 
     for folder in folders:
