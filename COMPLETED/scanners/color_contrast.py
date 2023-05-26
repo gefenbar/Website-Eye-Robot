@@ -8,36 +8,40 @@ MIN_CONTOUR_SIZE = 0
 MIN_ASPECT_RATIO = 0
 MAX_ASPECT_RATIO = 300
 MIN_SOLIDITY = 0.3
+COLOR_DIFF_THRESHOLD = 77
 
 
-def detect_text_near_edges(img_path, save_path):
+def detect_color_contrast(img_path, save_path):
     img = load_image(img_path)
-    cv2.imwrite("original_image.jpg", img)
+    # cv2.imwrite("original_image_color_constrast.jpg", img)
+
     gray = preprocess_image(img)
-    cv2.imwrite("grayscale_image.jpg", gray)
+    # cv2.imwrite("grayscale_image_color_constrast.jpg", gray)
+
     thresh = threshold_image(gray)
-    cv2.imwrite("thresholded_image.jpg", thresh)
+    # cv2.imwrite("thresholded_image_color_constrast.jpg", thresh)
 
     thresh = apply_morphological_operations(thresh)
-    cv2.imwrite("morphological_operations.jpg", thresh)
+    # cv2.imwrite("thresholded_image_color_constrast.jpg", thresh)
 
     contours = find_contours(thresh)
 
     img_copy = img.copy()
     found_issue = False
-
-    # Visualize contours
-    cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
-    cv2.imwrite("contours.jpg", img_copy)
+    # cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
+    # cv2.imwrite("contours.jpg_text_overlap", img_copy)
     for contour in contours:
-        if is_region_of_interest(contour, img):
+        if is_region_of_interest(contour):
             x, y, w, h = cv2.boundingRect(contour)
             crop_img = img[y:y+h, x:x+w]
 
             if contains_text(crop_img):
-                found_issue = True
-                cv2.rectangle(img_copy, (x, y),
-                              (x+w, y+h), (255, 102, 0), 2)
+                color_diff = compute_color_difference(crop_img)
+
+                if color_diff < COLOR_DIFF_THRESHOLD:
+                    found_issue = True
+                    cv2.rectangle(img_copy, (x, y),
+                                  (x+w, y+h), (255, 102, 0), 2)
 
     if found_issue:
         cv2.imwrite(save_path, img_copy)
@@ -79,15 +83,15 @@ def find_contours(thresh):
     return contours
 
 
-def is_region_of_interest(contour, img):
+def is_region_of_interest(contour):
     x, y, w, h = cv2.boundingRect(contour)
     if w * h < MIN_CONTOUR_SIZE or not MIN_ASPECT_RATIO <= w / h <= MAX_ASPECT_RATIO:
         return False
-    edge_threshold = min(img.shape[1], img.shape[0]) * 0.00000001
-    if x <= edge_threshold or y <= edge_threshold or x + w >= img.shape[1] - edge_threshold or y + h >= img.shape[0] - edge_threshold:
-        return True
-
-    return False
+    area = cv2.contourArea(contour)
+    hull = cv2.convexHull(contour)
+    hull_area = cv2.contourArea(hull)
+    solidity = float(area) / hull_area
+    return solidity >= MIN_SOLIDITY
 
 
 def contains_text(crop_img):
@@ -97,5 +101,12 @@ def contains_text(crop_img):
     return re.search(r'\w', text)
 
 
-detect_text_near_edges(
-    "screenshots_1920x1080/0_1_1728.png", "TEXT_NEAR_EDGES.png")
+def compute_color_difference(crop_img):
+    mean_color = np.mean(crop_img, axis=(0, 1))
+    peak_color = np.max(crop_img, axis=(0, 1))
+    color_diff = np.linalg.norm(mean_color - peak_color)
+    return color_diff
+
+
+# detect_color_contrast(
+#     "/home/gefen/Website-Eye-Robot/TESTS/COLOR_CONTRAST/7.png", "COLOR_CONTRAST.png")

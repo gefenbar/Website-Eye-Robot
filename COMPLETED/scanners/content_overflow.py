@@ -13,27 +13,27 @@ OVERFLOW_THRESHOLD = 0.1
 
 def detect_content_overflow(img_path, save_path):
     img = load_image(img_path)
-    cv2.imwrite("original_image.jpg", img)
+    # cv2.imwrite("original_image_content_overflow.jpg", img)
 
     denoised = denoise_image(img)
-    cv2.imwrite("denoised_image.jpg", denoised)
+    # cv2.imwrite("denoised_image_content_overflow.jpg", denoised)
 
     gray = preprocess_image(img)
-    cv2.imwrite("grayscale_image.jpg", gray)
+    # cv2.imwrite("grayscale_image_content_overflow.jpg", gray)
 
     thresh = threshold_image(gray)
-    cv2.imwrite("thresholded_image.jpg", thresh)
+    # cv2.imwrite("thresholded_image_content_overflow.jpg", thresh)
 
     thresh = apply_morphological_operations(thresh)
-    cv2.imwrite("morphological_operations.jpg", thresh)
+    # cv2.imwrite("morphological_operations_content_overflow.jpg", thresh)
 
     contours = find_contours(thresh)
     img_copy = img.copy()
     found_issue = False
 
     # Visualize contours
-    cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
-    cv2.imwrite("contours.jpg", img_copy)
+    # cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
+    # cv2.imwrite("contours_content_overflow.jpg", img_copy)
 
     for contour in contours:
         if is_region_of_interest(contour):
@@ -117,5 +117,5 @@ def is_content_overflow(crop_img, contour):
     return overflow_ratio > OVERFLOW_THRESHOLD
 
 
-detect_content_overflow(
-    "1.jpg", "CONTENT_OVERFLOW.png")
+# detect_content_overflow(
+#     "1.jpg", "CONTENT_OVERFLOW.png")

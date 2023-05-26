@@ -13,24 +13,24 @@ OVERLAP_THRESHOLD = 0.1
 
 def detect_text_overlap(img_path, save_path):
     img = load_image(img_path)
-    cv2.imwrite("original_image.jpg", img)
+    # cv2.imwrite("original_image_text_overlap.jpg", img)
 
     gray = preprocess_image(img)
-    cv2.imwrite("grayscale_image.jpg", gray)
+    # cv2.imwrite("grayscale_image_text_overlap.jpg", gray)
 
     thresh = threshold_image(gray)
-    cv2.imwrite("thresholded_image.jpg", thresh)
+    # cv2.imwrite("thresholded_image_text_overlap.jpg", thresh)
 
     thresh = apply_morphological_operations(thresh)
-    cv2.imwrite("morphological_operations.jpg", thresh)
+    # cv2.imwrite("morphological_operations_text_overlap.jpg", thresh)
 
     contours = find_contours(thresh)
     img_copy = img.copy()
     found_issue = False
 
    # Visualize contours
-    cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
-    cv2.imwrite("contours.jpg", img_copy)
+    # cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
+    # cv2.imwrite("contours_text_overlap.jpg", img_copy)
     for i, contour1 in enumerate(contours):
         if is_region_of_interest(contour1):
             x1, y1, w1, h1 = cv2.boundingRect(contour1)

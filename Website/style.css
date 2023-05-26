@@ -14,8 +14,8 @@ nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* background-color: #262626; */
-    background-color: #ccc;
+    background-color: #262626;
+    /* background-color: #ccc; */
     color: #B2B2B2;
     padding: 10px 20px;
     position: fixed;
