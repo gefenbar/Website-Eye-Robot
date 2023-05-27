@@ -2,7 +2,9 @@ import time
 import os
 import threading
 import pandas as pd
-
+import bson.json_util as json_util
+import shutil
+from dotenv import load_dotenv
 
 from flask import Flask, render_template, request, jsonify, url_for, make_response, send_file
 from flask_cors import CORS
@@ -24,6 +26,7 @@ from send_to_db import MongoDBClient
 
 app = Flask(__name__)
 CORS(app)
+load_dotenv()
 
 
 @app.route("/", methods=["GET"])
@@ -31,13 +34,22 @@ def heartbeat():
     return "Website Eye Robot is up and running!"
 
 
+@app.route("/reports", methods=["GET"])
+def getReports():
+
+    return json_util.dumps(mongoDbClient.find('reports'))
+
+
 @app.route("/report", methods=["POST"])
 def index():
     if request.method == "POST":
+        delete_existing_folders_and_files()
+        create_directories_for_screenshots()
+
         input_url = request.json.get("url")
 
         # Define the data variable as an empty dictionary
-        mongoDbClient.insert_document('sites', {
+        mongoDbClient.insert_document('reports', {
             'webpageUrl': input_url,
             'issuesFound': []
         })
@@ -79,10 +91,10 @@ def index():
 
                         # Add current page to visited pages at this resolution
                         visited_pages_resolution.add(current_url)
-
+                        driver.execute_script(
+                            "document.body.style.overflow = 'hidden';")
                         try:
-                            driver.execute_script(
-                                "document.body.style.overflow = 'hidden';")
+
                             # Wait for the page to finish loading completely
                             WebDriverWait(driver, 10).until(
                                 EC.presence_of_element_located(
@@ -173,7 +185,7 @@ def index():
                             saved_path = s3Uploader.upload_to_s3(
                                 issue, 'eye-robot', f'{url_}/{resolution}/{scanner_name}.png')
                             mongoDbClient.update_array(
-                                'sites', input_url, resolution, scanner_name, saved_path, url)
+                                'reports', input_url, resolution, scanner_name, saved_path, url)
 
                 delete_file(img_path)
 
@@ -207,6 +219,22 @@ def delete_file(file_path):
         print(f"Error deleting file: {e}")
 
 
+def delete_existing_folders_and_files():
+    folders = [
+        '1920x1080',
+        '1366x768',
+        '375x667'
+
+    ]
+
+    for folder in folders:
+        if os.path.exists(folder):
+            shutil.rmtree(folder)
+
+    if os.path.exists('data.json'):
+        os.remove('data.json')
+
+
 def create_directories_for_screenshots():
     resolutions = ['1920x1080', '1366x768', '375x667']
 
@@ -215,8 +243,10 @@ def create_directories_for_screenshots():
         os.makedirs(folder_name, exist_ok=True)
 
 
-create_directories_for_screenshots()
-
+mongoDbClient = MongoDBClient(
+    os.getenv('MONGO_URL'), 'eye-robot')
+s3Uploader = S3Uploader(os.getenv('AWS_ACCESS_KEY_ID'),
+                        os.getenv('AWS_SECRET_ACCESS_KEY'))
 
 if __name__ == '__main__':
     print('listening on port 3002')

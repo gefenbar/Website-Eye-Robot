@@ -13,9 +13,7 @@ class S3Uploader:
         s3_client = self.session.client('s3')
         try:
             s3_client.upload_file(file_path, bucket_name, object_name)
-            return f's3://{bucket_name}/{object_name}'
+            return f'https://{bucket_name}.s3.eu-west-1.amazonaws.com/{object_name}'
             os.remove(file_path)
         except Exception as e:
             print(f"Error uploading file: {e}")
-
-# os.environ["AWS_SERVER_SECRET_KEY"]

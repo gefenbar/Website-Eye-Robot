@@ -27,4 +27,10 @@ class MongoDBClient:
                 }
             })
 
-
+    def find(self, collection_name):
+        collection = self.db[collection_name]
+        ret = []
+        for item in collection.find():
+            ret.append(item)
+        # print(ret)
+        return ret
