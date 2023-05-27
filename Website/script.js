@@ -10,25 +10,55 @@ function setLoadingState(isLoading) {
 
 async function getReport() {
   setLoadingState(true);
-  const response = await fetch('http://127.0.0.1:3002/report', {
+  const response = await fetch('http://127.0.0.1:3002/reports', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   })
-  if (response.status === 404) return
-  const result = await response.json()
-  const url = Object.keys(result)[0]
-  const content = result[url]
-  document.getElementById('content').innerHTML = content
-  document.getElementById('url').innerHTML = url
 
+  if (response.status === 404) return
+  const results = await response.json()
+
+  let content = ''
+
+  for (const report of results) {
+    content = `<h3 class="url">${report.webpageUrl}</h3>`
+    for (const issue of report.issuesFound) {
+      content += `
+      <div class="report-card">
+      <div class="card-header">
+        <h3>${issue['scannerName']}</h3>
+        <p> page url -> 
+        <a href="${issue['pageUrl']}"> ${issue['pageUrl']}</a>
+        </p>
+        <p>resolution -> <span>${issue['resolution']}</span></p>
+        </div>
+          <div class="card-screenshot">
+            <a>
+              <img class="screenshot-img" src='${issue['img']}'></img>
+            </a>
+          </div>
+        </div>`
+    }
+  
+    if (report.issuesFound == 0) {
+      downloadExcelButton = '<button id="download-btn" ">No Issues found</button><br/>'
+  
+    }
+    else {
+      downloadExcelButton = '<button id="download-btn" onclick="downloadExcel()">Download Excel</button><br/>'
+    }
+  }
+ 
+
+
+  document.getElementById('content').innerHTML = downloadExcelButton + content
   // Select screenshot images and add event listeners
   const screenshotImgs = document.querySelectorAll('.screenshot-img');
   screenshotImgs.forEach((screenshotImg) => {
     screenshotImg.addEventListener('mousemove', handleMouseMove);
   });
-  // document.getElementById("url").classList.remove("loading");
   setLoadingState(false);
-  document.getElementById("url").style.padding = '10px'
+  document.querySelector(".url").style.padding = '10px'
 }
 getReport()
 
@@ -137,7 +167,7 @@ if (url_indicator.innerText.length == 0) {
 
 function downloadExcel() {
   // Send a request to the server to retrieve the data
-  fetch('http://localhost:3002/report', {
+  fetch('http://localhost:3002/reports', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   })
@@ -165,7 +195,7 @@ function downloadExcel() {
         const pageUrl = reportCard.querySelector('a').href;
         const resolution = reportCard.querySelector('span').textContent;
         const image = reportCard.querySelector('img').src;
-        rows.push([name, pageUrl, resolution, image]);
+        rows.push([name, pageUrl, resolution.replace, image]);
       });
 
       // Create a new workbook and worksheet

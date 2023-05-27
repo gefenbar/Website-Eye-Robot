@@ -458,7 +458,7 @@ section:last-of-type {
     font-weight: bold;
 }
 
-#url {
+.url {
     display: inline-block;
     /* padding: 10px; */
     margin: 20px;
@@ -500,7 +500,7 @@ section:last-of-type {
 }
 
 
-#url:hover {
+.url:hover {
     color: #6930C3;
     background-color: white;
     animation: none;
