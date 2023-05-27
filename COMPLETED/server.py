@@ -59,7 +59,7 @@ def index():
         def main_task(url, page_urls):
             resolutions = [(1920, 1080), (1366, 768), (375, 667)]
 
-            driver = webdriver.Chrome()
+            driver = webdriver.Chrome(executable_path='chromedriver')
             try:
                 # Open URL in web driver and add it to the page_urls list
                 driver.get(url)
@@ -126,7 +126,7 @@ def index():
                                 driver.execute_script(
                                     f"window.scrollTo(0, {scroll_position})"
                                 )
-                                time.sleep(1.2)
+                                time.sleep(0.4)
 
                             links = driver.find_elements(By.TAG_NAME, "a")
 
@@ -157,12 +157,19 @@ def index():
 
             lock = threading.Lock()
             threads_list = []
+            processed = []
 
             def process_image(img_path, resolution):
+                if img_path in processed:
+                    print(f'already processed - {img_path}')
+                    return
+                processed.append(img_path)
                 nonlocal issue_found
+                print(f'process - {img_path}, {resolution}')
 
                 for scanner_name in scanner_names:
-                    save_path = f'{resolution}/{scanner_name}.png'
+                    fileName = img_path.split('/')[1]
+                    save_path = f'{resolution}/{scanner_name}{fileName}'
                     if scanner_name == 'color_contrast':
                         issue = detect_color_contrast(
                             img_path, save_path)
@@ -183,9 +190,9 @@ def index():
                             issue_found = True
                             url_ = url.replace('/', '_')
                             saved_path = s3Uploader.upload_to_s3(
-                                issue, 'eye-robot', f'{url_}/{resolution}/{scanner_name}.png')
+                                issue, 'eye-robot', f'{url_}/{save_path}')
                             mongoDbClient.update_array(
-                                'reports', input_url, resolution, scanner_name, saved_path, url)
+                                'reports', input_url, resolution, scanner_name.replace('_', ' '), saved_path, url)
 
                 delete_file(img_path)
 
@@ -194,11 +201,13 @@ def index():
                     '/')[0]
                 t = threading.Thread(
                     target=process_image, args=(path_to_image, resolution))
-                t.start()
                 threads_list.append(t)
+                t.start()
 
             for t in threads_list:
                 t.join()
+            
+            print("done")
 
         # Create a list to store the URLs of the pages visited
         page_urls = []
@@ -231,8 +240,6 @@ def delete_existing_folders_and_files():
         if os.path.exists(folder):
             shutil.rmtree(folder)
 
-    if os.path.exists('data.json'):
-        os.remove('data.json')
 
 
 def create_directories_for_screenshots():

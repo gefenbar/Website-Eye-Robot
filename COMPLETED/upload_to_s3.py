@@ -13,7 +13,15 @@ class S3Uploader:
         s3_client = self.session.client('s3')
         try:
             s3_client.upload_file(file_path, bucket_name, object_name)
+            delete_file(file_path)
             return f'https://{bucket_name}.s3.eu-west-1.amazonaws.com/{object_name}'
-            os.remove(file_path)
         except Exception as e:
             print(f"Error uploading file: {e}")
+
+
+def delete_file(file_path):
+    try:
+        os.remove(file_path)
+        print(f"File deleted successfully: {file_path}")
+    except OSError as e:
+        print(f"Error deleting file: {e}")

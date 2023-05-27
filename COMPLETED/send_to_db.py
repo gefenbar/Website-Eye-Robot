@@ -8,6 +8,7 @@ class MongoDBClient:
 
     def insert_document(self, collection_name, document):
         collection = self.db[collection_name]
+        exists = collection.find_one_and_delete({'webpageUrl': document['webpageUrl']})
         # Insert the document
         insert_result = collection.insert_one(document)
         inserted_id = insert_result.inserted_id
