@@ -1,5 +1,5 @@
 let isLoading = false;
-
+let reportsData = []
 function setLoadingState(isLoading) {
   if (isLoading) {
     document.getElementById("url").classList.add("loading");
@@ -16,11 +16,11 @@ async function getReport() {
   })
 
   if (response.status === 404) return
-  const results = await response.json()
+  reportsData = await response.json()
 
   let content = ''
 
-  for (const report of results) {
+  for (const report of reportsData) {
     content = `<h3 class="url">${report.webpageUrl}</h3>`
     for (const issue of report.issuesFound) {
       content += `
@@ -39,16 +39,16 @@ async function getReport() {
           </div>
         </div>`
     }
-  
+
     if (report.issuesFound == 0) {
       downloadExcelButton = '<button id="download-btn" ">No Issues found</button><br/>'
-  
+
     }
     else {
       downloadExcelButton = '<button id="download-btn" onclick="downloadExcel()">Download Excel</button><br/>'
     }
   }
- 
+
 
 
   document.getElementById('content').innerHTML = downloadExcelButton + content
@@ -166,81 +166,55 @@ if (url_indicator.innerText.length == 0) {
 }
 
 function downloadExcel() {
-  // Send a request to the server to retrieve the data
-  fetch('http://localhost:3002/reports', {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' }
-  })
-    .then((response) => {
-      if (response.ok) {
-        // Get the response data as JSON
-        return response.json();
-      } else {
-        throw new Error('Failed to retrieve data from server');
-      }
-    })
-    .then((data) => {
-      // Extract the HTML string from the data
-      const htmlString = data['http://127.0.0.1:3000/Website/index.html'];
+  if (reportsData.length < 1) return;
+  const reportData = reportsData.slice(-1)[0]
 
-      // Parse the HTML string
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlString, 'text/html');
+  const rows = [];
+  // console.log(reportData)
+  reportData?.issuesFound?.forEach((issue) => {
+    const name = issue.scannerName;
+    const pageUrl = issue.pageUrl;
+    const resolution = issue.resolution;
+    const image = issue.img;
+    rows.push({ 'Issue Name': name, 'Page URL': pageUrl, 'Resolution': resolution, 'Image': image });
+  });
+  // console.log(rows)
 
-      // Extract the relevant data from the HTML
-      const reportCards = doc.querySelectorAll('.report-card');
-      const rows = [];
-      reportCards.forEach((reportCard) => {
-        const name = reportCard.querySelector('h3').textContent;
-        const pageUrl = reportCard.querySelector('a').href;
-        const resolution = reportCard.querySelector('span').textContent;
-        const image = reportCard.querySelector('img').src;
-        rows.push([name, pageUrl, resolution.replace, image]);
-      });
+  // Sort the rows array by the 'Issue Name' field
+  rows.sort((a, b) => a['Issue Name'].localeCompare(b['Issue Name']));
+  // Create a new workbook
+  const workbook = XLSX.utils.book_new();
 
-      // Create a new workbook and worksheet
-      const newWorkbook = XLSX.utils.book_new();
-      const newWorksheet = XLSX.utils.aoa_to_sheet([
-        ['Issue Name', 'Page URL', 'Resolution', 'Image'],
-        ...rows,
-      ]);
+  // Convert the data to a worksheet
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  worksheet['!cols'] = [
+    { wch: 20 }, // "Issue Name" column
+    { wch: 50 }, // "Page URL" column
+    { wch: 20 }, // "Resolution" column
+    { wch: 50 }, // "Image" column
+  ];
+  // Add the worksheet to the workbook
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
 
-      // Set the width of the columns
-      newWorksheet['!cols'] = [
-        { wch: 20 }, // "Issue Name" column
-        { wch: 50 }, // "Page URL" column
-        { wch: 20 }, // "Resolution" column
-        { wch: 50 }, // "Image" column
-      ];
+  // Generate a binary string from the workbook
+  const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
 
-      // Add the worksheet to the workbook
-      XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, 'Sheet1');
+  // Create a Blob from the binary string
+  const blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
 
-      // Generate a binary string from the workbook
-      const wbout = XLSX.write(newWorkbook, { bookType: 'xlsx', type: 'binary' });
+  // Create a temporary link element
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'report.xlsx'; // Set the desired filename for the downloaded file
 
-      // Create a Blob from the binary string
-      const blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
+  // Append the link to the document body
+  document.body.appendChild(link);
 
-      // Create a temporary link element
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'report.xlsx'; // Set the desired filename for the downloaded file
+  // Trigger the download by simulating a click on the link
+  link.click();
 
-      // Append the link to the document body
-      document.body.appendChild(link);
-
-      // Trigger the download by simulating a click on the link
-      link.click();
-
-      // Cleanup: remove the temporary link from the document
-      document.body.removeChild(link);
-    })
-    .catch((error) => {
-      console.error(error);
-      // Show an error message to the user
-      alert('Failed to download Excel file. Please try again later.');
-    });
+  // Cleanup: remove the temporary link from the document
+  document.body.removeChild(link);
 }
 
 // Helper function to convert a string to an array buffer
