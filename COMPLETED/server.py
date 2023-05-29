@@ -66,7 +66,7 @@ def index():
         def main_task(url, page_urls):
             resolutions = [(1920, 1080), (1366, 768), (375, 667)]
 
-            driver = webdriver.Chrome(executable_path='chromedriver')
+            driver = webdriver.Chrome(executable_path='./chromedriver')
             try:
                 # Open URL in web driver and add it to the page_urls list
                 driver.get(url)
