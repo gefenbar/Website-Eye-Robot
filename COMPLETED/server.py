@@ -4,10 +4,12 @@ import threading
 import pandas as pd
 import bson.json_util as json_util
 import shutil
+
 from dotenv import load_dotenv
 
 from flask import Flask, render_template, request, jsonify, url_for, make_response, send_file
 from flask_cors import CORS
+
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -27,6 +29,11 @@ from send_to_db import MongoDBClient
 app = Flask(__name__)
 CORS(app)
 load_dotenv()
+
+mongoDbClient = MongoDBClient(
+    os.getenv('MONGO_URL'), 'eye-robot')
+s3Uploader = S3Uploader(os.getenv('AWS_ACCESS_KEY_ID'),
+                        os.getenv('AWS_SECRET_ACCESS_KEY'))
 
 
 @app.route("/", methods=["GET"])
@@ -126,7 +133,7 @@ def index():
                                 driver.execute_script(
                                     f"window.scrollTo(0, {scroll_position})"
                                 )
-                                time.sleep(0.4)
+                                time.sleep(0.2)
 
                             links = driver.find_elements(By.TAG_NAME, "a")
 
@@ -206,8 +213,8 @@ def index():
 
             for t in threads_list:
                 t.join()
-            
-            print("done")
+
+            print("Scan Completed")
 
         # Create a list to store the URLs of the pages visited
         page_urls = []
@@ -241,7 +248,6 @@ def delete_existing_folders_and_files():
             shutil.rmtree(folder)
 
 
-
 def create_directories_for_screenshots():
     resolutions = ['1920x1080', '1366x768', '375x667']
 
@@ -249,11 +255,6 @@ def create_directories_for_screenshots():
         folder_name = f"{resolution}"
         os.makedirs(folder_name, exist_ok=True)
 
-
-mongoDbClient = MongoDBClient(
-    os.getenv('MONGO_URL'), 'eye-robot')
-s3Uploader = S3Uploader(os.getenv('AWS_ACCESS_KEY_ID'),
-                        os.getenv('AWS_SECRET_ACCESS_KEY'))
 
 if __name__ == '__main__':
     print('listening on port 3002')
