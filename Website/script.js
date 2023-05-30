@@ -1,12 +1,14 @@
 let isLoading = false;
 let reportsData = []
 function setLoadingState(isLoading) {
+  const urlElement = document.getElementById("url");
   if (isLoading) {
-    document.getElementById("url").classList.add("loading");
+    urlElement.classList.add("loading");
   } else {
-    document.getElementById("url").classList.remove("loading");
+    urlElement.classList.remove("loading");
   }
 }
+
 
 async function getReport() {
   setLoadingState(true);

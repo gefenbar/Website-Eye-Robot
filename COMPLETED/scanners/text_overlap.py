@@ -55,10 +55,11 @@ def detect_text_overlap(img_path, save_path):
                                               (x2+w2, y2+h2), (0, 0, 255), 2)
 
     if found_issue:
+        print("Found TEXT_OVERLAP issue")
         cv2.imwrite(save_path, img_copy)
         return save_path
     else:
-        print("No issues found")
+        print("Not found TEXT_OVERLAP issue")
         return ""
 
 

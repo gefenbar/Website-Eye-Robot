@@ -61,47 +61,47 @@ def index():
             'issuesFound': []
         })
 
-        paths_to_images = []
+        paths_to_images = set()
 
-        def main_task(url, page_urls):
+        def main_task(url, pages_url):
             resolutions = [(1920, 1080), (1366, 768), (375, 667)]
-
             driver = webdriver.Chrome(executable_path='chromedriver')
             try:
                 # Open URL in web driver and add it to the page_urls list
-                driver.get(url)
-                page_urls.append(url)
-                WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.TAG_NAME, "body"))
-                )
 
-                visited_pages = set()
+                visited_pages = []
+                visited_pages.append(url)
+                visit_index = 0
+                while visit_index < len(visited_pages):
+                    driver.get(visited_pages[visit_index])
+                    WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.TAG_NAME, "body"))
+                    )
+                    links = driver.find_elements(By.TAG_NAME, "a")
+                    for link in links:
+                        try:
+                            href = link.get_attribute("href")
+                            if (
+                                href is not None
+                                and href.startswith(url)
+                                and href not in visited_pages
+                                and "#" not in href
+                                and not href.lower().endswith(".pdf")
+                            ):
+                                visited_pages.append(href)
+                        except StaleElementReferenceException:
+                            print("")
 
-                for i, resolution in enumerate(resolutions):
-                    visited_pages_resolution = set()  # keep track of visited pages for this resolution
+                    for resolution in resolutions:
+                        # Create folder name based on resolution
+                        folder_name = f"{resolution[0]}x{resolution[1]}"
 
-                    # Create folder name based on resolution
-                    folder_name = f"{resolution[0]}x{resolution[1]}"
+                        # Set window size to current resolution
+                        driver.set_window_size(*resolution)
 
-                    # Set window size to current resolution
-                    driver.set_window_size(*resolution)
-
-                    while True:
-                        # Get current page URL
-                        current_url = driver.current_url
-
-                        # Check if current page has already been visited at this resolution
-                        if current_url in visited_pages_resolution:
-                            print(
-                                f"Skipping already visited page at {resolution}: {current_url}")
-                            break
-
-                        # Add current page to visited pages at this resolution
-                        visited_pages_resolution.add(current_url)
                         driver.execute_script(
                             "document.body.style.overflow = 'hidden';")
                         try:
-
                             # Wait for the page to finish loading completely
                             WebDriverWait(driver, 10).until(
                                 EC.presence_of_element_located(
@@ -115,7 +115,7 @@ def index():
 
                             # Set initial scroll position and section height
                             scroll_position = 0
-                            section_height = int(resolution[1] * 0.8)
+                            section_height = int(resolution[1] * 0.9)
 
                             driver.execute_script("window.scrollTo(0, 0)")
 
@@ -123,36 +123,20 @@ def index():
                             while scroll_position < page_height:
                                 img_path_to_save = os.path.join(
                                     folder_name,
-                                    f"{i}{len(visited_pages_resolution)}{scroll_position}.png",
+                                    f"{visited_pages[visit_index].replace('/', '_')}_{scroll_position}.png"
                                 )
                                 driver.save_screenshot(
                                     img_path_to_save
                                 )
-                                paths_to_images.append(img_path_to_save)
+                                paths_to_images.add(img_path_to_save)
                                 scroll_position += section_height
                                 driver.execute_script(
                                     f"window.scrollTo(0, {scroll_position})"
                                 )
-                                time.sleep(0.2)
-
-                            links = driver.find_elements(By.TAG_NAME, "a")
-
-                            for link in links:
-                                try:
-                                    href = link.get_attribute("href")
-                                    if (
-                                        href is not None
-                                        and href.startswith(url)
-                                        and href not in visited_pages_resolution
-                                        and "#" not in href
-                                        and not href.lower().endswith(".pdf")
-                                    ):
-                                        driver.get(href)
-                                except StaleElementReferenceException:
-                                    continue
-
+                                # time.sleep(0.2)
                         except StaleElementReferenceException:
                             continue
+                    visit_index += 1
 
             finally:
                 driver.quit()
@@ -170,6 +154,7 @@ def index():
                 if img_path in processed:
                     print(f'already processed - {img_path}')
                     return
+
                 processed.append(img_path)
                 nonlocal issue_found
                 print(f'process - {img_path}, {resolution}')

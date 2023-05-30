@@ -10,17 +10,22 @@ MAX_ASPECT_RATIO = 300
 MIN_SOLIDITY = 0.3
 
 
+
 def detect_edge_overflow(img_path, save_path):
     img = load_image(img_path)
-    cv2.imwrite("original_image.jpg", img)
-    gray = preprocess_image(img)
-    cv2.imwrite("grayscale_image.jpg", gray)
+    # cv2.imwrite("original_image.jpg", img)
+
+    # Denoise image
+    denoised = denoise_image(img)
+    # cv2.imwrite("denoised_image.jpg", denoised)
+
+    gray = preprocess_image(denoised)
+    # cv2.imwrite("grayscale_image.jpg", gray)
     thresh = threshold_image(gray)
-    cv2.imwrite("thresholded_image.jpg", thresh)
+    # cv2.imwrite("thresholded_image.jpg", thresh)
 
     thresh = apply_morphological_operations(thresh)
-    cv2.imwrite("morphological_operations.jpg", thresh)
-
+    # cv2.imwrite("morphological_operations.jpg", thresh)
 
     contours = find_contours(thresh)
 
@@ -28,8 +33,8 @@ def detect_edge_overflow(img_path, save_path):
     found_issue = False
 
     # Visualize contours
-    cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
-    cv2.imwrite("contours.jpg", img_copy)
+    # cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
+    # cv2.imwrite("contours.jpg", img_copy)
     for contour in contours:
         if is_region_of_interest(contour, img):
             x, y, w, h = cv2.boundingRect(contour)
@@ -41,15 +46,22 @@ def detect_edge_overflow(img_path, save_path):
                               (x+w, y+h), (255, 102, 0), 2)
 
     if found_issue:
+        print("Found EDGE_OVERFLOW issue")
         cv2.imwrite(save_path, img_copy)
         return save_path
     else:
-        print("No issues found")
+        print("Not found EDGE_OVERFLOW issue")
         return ""
 
 
 def load_image(img_path):
     return cv2.imread(img_path)
+
+
+def denoise_image(img):
+    # Apply bilateral filter for denoising
+    denoised = cv2.bilateralFilter(img, 9, 75, 75)
+    return denoised
 
 
 def preprocess_image(img):
@@ -99,4 +111,4 @@ def contains_text(crop_img):
 
 
 # detect_edge_overflow(
-    # "/home/gefen/Website-Eye-Robot/original_image.jpg", "TEXT_NEAR_EDGES.png")
+#     "9.jpg", "TEXT_NEAR_EDGES.png")
