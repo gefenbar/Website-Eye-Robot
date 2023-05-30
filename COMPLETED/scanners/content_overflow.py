@@ -13,19 +13,19 @@ OVERFLOW_THRESHOLD = 0.1
 
 def detect_content_overflow(img_path, save_path):
     img = load_image(img_path)
-    # cv2.imwrite("original_image_content_overflow.jpg", img)
+    cv2.imwrite("original_image_content_overflow.jpg", img)
 
     denoised = denoise_image(img)
-    # cv2.imwrite("denoised_image_content_overflow.jpg", denoised)
+    cv2.imwrite("denoised_image_content_overflow.jpg", denoised)
 
     gray = preprocess_image(img)
-    # cv2.imwrite("grayscale_image_content_overflow.jpg", gray)
+    cv2.imwrite("grayscale_image_content_overflow.jpg", gray)
 
     thresh = threshold_image(gray)
-    # cv2.imwrite("thresholded_image_content_overflow.jpg", thresh)
+    cv2.imwrite("thresholded_image_content_overflow.jpg", thresh)
 
     thresh = apply_morphological_operations(thresh)
-    # cv2.imwrite("morphological_operations_content_overflow.jpg", thresh)
+    cv2.imwrite("morphological_operations_content_overflow.jpg", thresh)
 
     contours = find_contours(thresh)
     img_copy = img.copy()
@@ -55,8 +55,9 @@ def detect_content_overflow(img_path, save_path):
 def load_image(img_path):
     return cv2.imread(img_path)
 
-def denoise_image(img):
-    return cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
+# def denoise_image(img):
+#     return cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
+
 def preprocess_image(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     clahe = cv2.createCLAHE(clipLimit=20.0, tileGridSize=(8, 8))
@@ -118,4 +119,4 @@ def is_content_overflow(crop_img, contour):
 
 
 # detect_content_overflow(
-#     "1.jpg", "CONTENT_OVERFLOW.png")
+    # "/home/gefen/Website-Eye-Robot/TESTS/yyy.jpg", "CONTENT_OVERFLOW.png")

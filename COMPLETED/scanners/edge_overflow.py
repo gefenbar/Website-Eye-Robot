@@ -12,18 +12,15 @@ MIN_SOLIDITY = 0.3
 
 def detect_edge_overflow(img_path, save_path):
     img = load_image(img_path)
-    # cv2.imwrite("original_image.jpg", img)
+    cv2.imwrite("original_image.jpg", img)
     gray = preprocess_image(img)
     cv2.imwrite("grayscale_image.jpg", gray)
     thresh = threshold_image(gray)
     cv2.imwrite("thresholded_image.jpg", thresh)
 
- # Remove non-text areas
-    text_mask = remove_non_text_areas(thresh)
-    cv2.imwrite("text_mask.jpg", text_mask)
-
     thresh = apply_morphological_operations(thresh)
     cv2.imwrite("morphological_operations.jpg", thresh)
+
 
     contours = find_contours(thresh)
 
@@ -101,27 +98,5 @@ def contains_text(crop_img):
     return re.search(r'\w', text)
 
 
-def remove_non_text_areas(thresh):
-    # Apply additional image processing techniques to isolate text regions
-
-    # Step 1: Perform connected component analysis to identify individual text regions
-    num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(
-        thresh)
-
-    # Step 2: Filter out small components (non-text regions)
-    min_component_size = 100  # Adjust this threshold as needed
-    text_mask = np.zeros_like(thresh)
-    for label in range(1, num_labels):
-        # Check component size
-        if stats[label, cv2.CC_STAT_AREA] >= min_component_size:
-            # Add the component to the text mask
-            text_mask[labels == label] = 255
-
-    # Step 3: Perform additional image processing operations on the text mask if needed
-    # For example, you can apply morphological operations to further refine the text regions
-
-    return text_mask
-
-
-detect_edge_overflow(
-    "/home/gefen/Website-Eye-Robot/1366x768/12614.png", "TEXT_NEAR_EDGES.png")
+# detect_edge_overflow(
+    # "/home/gefen/Website-Eye-Robot/original_image.jpg", "TEXT_NEAR_EDGES.png")
