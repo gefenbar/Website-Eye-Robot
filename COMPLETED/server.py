@@ -123,7 +123,7 @@ def index():
                             while scroll_position < page_height:
                                 img_path_to_save = os.path.join(
                                     folder_name,
-                                    f"{visited_pages[visit_index].replace('/', '_')}_{scroll_position}.png"
+                                    f"{visited_pages[visit_index].replace('/', '_')}~{scroll_position}.png"
                                 )
                                 driver.save_screenshot(
                                     img_path_to_save
@@ -179,12 +179,13 @@ def index():
 
                     if issue:
                         with lock:
+                            url_ = img_path.split(
+                                '/')[1].replace('_', '/').split('~')[0]
                             issue_found = True
-                            url_ = url.replace('/', '_')
                             saved_path = s3Uploader.upload_to_s3(
-                                issue, 'eye-robot', f'{url_}/{save_path}')
+                                issue, 'eye-robot', f'{img_path}/{save_path}')
                             mongoDbClient.update_array(
-                                'reports', input_url, resolution, scanner_name.replace('_', ' '), saved_path, url)
+                                'reports', input_url, resolution, scanner_name.replace('', ' '), saved_path, url_)
 
                 delete_file(img_path)
 

@@ -96,7 +96,7 @@ def is_region_of_interest(contour):
 def contains_text(crop_img):
     crop_img_gray = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
     text = pytesseract.image_to_string(
-        crop_img_gray, lang='en+heb', config='--psm 6 --oem 1')
+        crop_img_gray, lang='en', config='--psm 6 --oem 1')
     return re.search(r'\w', text)
 
 
