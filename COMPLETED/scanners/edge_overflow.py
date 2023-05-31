@@ -3,12 +3,14 @@ import cv2
 import numpy as np
 import re
 
+# for testing
+import os
+
 # Constants
 MIN_CONTOUR_SIZE = 0
 MIN_ASPECT_RATIO = 0
 MAX_ASPECT_RATIO = 300
 MIN_SOLIDITY = 0.3
-
 
 
 def detect_edge_overflow(img_path, save_path):
@@ -96,8 +98,10 @@ def is_region_of_interest(contour, img):
     x, y, w, h = cv2.boundingRect(contour)
     if w * h < MIN_CONTOUR_SIZE or not MIN_ASPECT_RATIO <= w / h <= MAX_ASPECT_RATIO:
         return False
+
     edge_threshold = min(img.shape[1], img.shape[0]) * 0.00000001
-    if x <= edge_threshold or y <= edge_threshold or x + w >= img.shape[1] - edge_threshold or y + h >= img.shape[0] - edge_threshold:
+    # Only check the left and right edges
+    if x <= edge_threshold or x + w >= img.shape[1] - edge_threshold:
         return True
 
     return False
@@ -110,5 +114,30 @@ def contains_text(crop_img):
     return re.search(r'\w', text)
 
 
+def test_directory(directory_path, save_directory):
+    # Create the save directory if it doesn't exist
+    if not os.path.exists(save_directory):
+        os.makedirs(save_directory)
+
+    # Iterate over all files in the directory
+    for filename in os.listdir(directory_path):
+        if filename.endswith(".png") or filename.endswith(".jpg"):
+            # Construct the full paths for the input image and save path
+            img_path = os.path.join(directory_path, filename)
+            save_path = os.path.join(save_directory, filename)
+
+            # Call the detect_edge_overflow function
+            result = detect_edge_overflow(img_path, save_path)
+            if result:
+                print(
+                    f"EDGE_OVERFLOW issue detected in {img_path}. Annotated image saved as {result}.")
+            else:
+                print(f"No EDGE_OVERFLOW issue found in {img_path}.")
+
+
+# Test the directory
+directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/EDGE_OVERFLOW/"
+save_directory = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/EDGE_OVERFLOW_ANNOTATED"
+test_directory(directory_path, save_directory)
 # detect_edge_overflow(
-#     "9.jpg", "TEXT_NEAR_EDGES.png")
+#     "/home/gefen/Website-Eye-Robot/375x667/https:__eyerobotproject.editorx.io_demo1_blank-1~600.png", "TEXT_NEAR_EDGES.png")

@@ -12,11 +12,15 @@ function setLoadingState(isLoading) {
 
 async function getReport() {
   setLoadingState(true);
-  const response = await fetch(' http://109.67.30.38:3002/reports', {
+  const response = await fetch(' http://127.0.0.1:3002/reports', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   })
-
+  // const response = await fetch('http://109.67.30.38:3002/reports', {
+  //   method: 'GET',
+  //   headers: { 'Content-Type': 'application/json' }
+  // })
+ 
   if (response.status === 404) return
   reportsData = await response.json()
 
@@ -83,11 +87,16 @@ function ScanReport() {
   try {
     const urlInput = document.querySelector('#url-input').value.trim();
     // Send the URL to the server for scanning
-    fetch(' http://109.67.30.38:3002/report', {
+    fetch('http://127.0.0.1:3002/report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: urlInput })
     })
+    // fetch('http://109.67.30.38:3002/report', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ url: urlInput })
+    // })
     setTimeout(() => {
       getReport()
     }, 30000)
