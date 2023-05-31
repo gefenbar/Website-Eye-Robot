@@ -4,7 +4,7 @@ import numpy as np
 import re
 
 # for testing
-import os
+# import os
 
 # Constants
 MIN_CONTOUR_SIZE = 0
@@ -16,23 +16,23 @@ COLOR_DIFF_THRESHOLD =60
 
 def detect_color_contrast(img_path, save_path):
     img = load_image(img_path)
-    cv2.imwrite("original_image_color_constrast.jpg", img)
+    # cv2.imwrite("original_image_color_constrast.jpg", img)
 
     gray = preprocess_image(img)
-    cv2.imwrite("grayscale_image_color_constrast.jpg", gray)
+    # cv2.imwrite("grayscale_image_color_constrast.jpg", gray)
 
     thresh = threshold_image(gray)
-    cv2.imwrite("thresholded_image_color_constrast.jpg", thresh)
+    # cv2.imwrite("thresholded_image_color_constrast.jpg", thresh)
 
     thresh = apply_morphological_operations(thresh)
-    cv2.imwrite("morphological_image_color_constrast.jpg", thresh)
+    # cv2.imwrite("morphological_image_color_constrast.jpg", thresh)
 
     contours = find_contours(thresh)
 
     img_copy = img.copy()
     found_issue = False
-    cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
-    cv2.imwrite("contours.jpg_text_overlap", img_copy)
+    # cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
+    # cv2.imwrite("contours.jpg_text_overlap", img_copy)
     for contour in contours:
         if is_region_of_interest(contour):
             x, y, w, h = cv2.boundingRect(contour)
@@ -111,30 +111,31 @@ def compute_color_difference(crop_img):
     return color_diff
 
 
-def test_directory(directory_path, save_directory):
-    # Create the save directory if it doesn't exist
-    if not os.path.exists(save_directory):
-        os.makedirs(save_directory)
+# def test_directory(directory_path, save_directory):
+#     # Create the save directory if it doesn't exist
+#     if not os.path.exists(save_directory):
+#         os.makedirs(save_directory)
 
-    # Iterate over all files in the directory
-    for filename in os.listdir(directory_path):
-        if filename.endswith(".png") or filename.endswith(".jpg"):
-            # Construct the full paths for the input image and save path
-            img_path = os.path.join(directory_path, filename)
-            save_path = os.path.join(save_directory, filename)
+#     # Iterate over all files in the directory
+#     for filename in os.listdir(directory_path):
+#         if filename.endswith(".png") or filename.endswith(".jpg"):
+#             # Construct the full paths for the input image and save path
+#             img_path = os.path.join(directory_path, filename)
+#             save_path = os.path.join(save_directory, filename)
 
-            # Call the detect_color_contrast function
-            result = detect_color_contrast(img_path, save_path)
-            if result:
-                print(f"COLOR_CONTRAST issue detected in {img_path}. Annotated image saved as {result}.")
-            else:
-                print(f"No COLOR_CONTRAST issue found in {img_path}.")
+#             # Call the detect_color_contrast function
+#             result = detect_color_contrast(img_path, save_path)
+#             if result:
+#                 print(f"COLOR_CONTRAST issue detected in {img_path}. Annotated image saved as {result}.")
+#             else:
+#                 print(f"No COLOR_CONTRAST issue found in {img_path}.")
 
 
 # Test the directory
-directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/x"
-save_directory = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/COLOR_CONTRAST_ANNOTATED"
-test_directory(directory_path, save_directory)
+# directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/x"
+# save_directory = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/COLOR_CONTRAST_ANNOTATED"
+# test_directory(directory_path, save_directory)
 
+# Test image
 # detect_color_contrast(
 #     "1.jpg", "COLOR_CONTRAST.png")

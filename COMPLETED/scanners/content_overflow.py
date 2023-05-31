@@ -3,12 +3,16 @@ import cv2
 import numpy as np
 import re
 
+
+# for testing
+import os
+
 # Constants
 MIN_CONTOUR_SIZE = 0
 MIN_ASPECT_RATIO = 0
 MAX_ASPECT_RATIO = 300
 MIN_SOLIDITY = 0
-OVERFLOW_THRESHOLD = 0.5
+OVERFLOW_THRESHOLD = 0.3
 
 
 def detect_content_overflow(img_path, save_path):
@@ -16,21 +20,21 @@ def detect_content_overflow(img_path, save_path):
     # cv2.imwrite("original_image_content_overflow.jpg", img)
 
     gray = preprocess_image(img)
-    # cv2.imwrite("grayscale_image_content_overflow.jpg", gray)
+    cv2.imwrite("grayscale_image_content_overflow.jpg", gray)
 
     thresh = threshold_image(gray)
-    # cv2.imwrite("thresholded_image_content_overflow.jpg", thresh)
+    cv2.imwrite("thresholded_image_content_overflow.jpg", thresh)
 
     thresh = apply_morphological_operations(thresh)
-    # cv2.imwrite("morphological_operations_content_overflow.jpg", thresh)
+    cv2.imwrite("morphological_operations_content_overflow.jpg", thresh)
 
     contours = find_contours(thresh)
     img_copy = img.copy()
     found_issue = False
 
     # Visualize contours
-    # cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
-    # cv2.imwrite("contours_content_overflow.jpg", img_copy)
+    cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
+    cv2.imwrite("contours_content_overflow.jpg", img_copy)
 
     for contour in contours:
         if is_region_of_interest(contour):
@@ -42,11 +46,11 @@ def detect_content_overflow(img_path, save_path):
                 cv2.rectangle(img_copy, (x, y), (x+w, y+h), (255, 0, 0), 2)
 
     if found_issue:
-        print("Found CONTENT_OVERFLOW issue")
+        # print("Found CONTENT_OVERFLOW issue")
         cv2.imwrite(save_path, img_copy)
         return save_path
     else:
-        print("Not found CONTENT_OVERFLOW issue")
+        # print("Not found CONTENT_OVERFLOW issue")
         return ""
 
 
@@ -133,7 +137,29 @@ def rectangles_overlap(rect1, rect2):
         return False
 
     return True
+def test_directory(directory_path, save_directory):
+    # Create the save directory if it doesn't exist
+    if not os.path.exists(save_directory):
+        os.makedirs(save_directory)
 
+    # Iterate over all files in the directory
+    for filename in os.listdir(directory_path):
+        if filename.endswith(".png") or filename.endswith(".jpg"):
+            # Construct the full paths for the input image and save path
+            img_path = os.path.join(directory_path, filename)
+            save_path = os.path.join(save_directory, filename)
+
+            # Call the detect_content_overflow function
+            result = detect_content_overflow(img_path, save_path)
+            if result:
+                print(f"CONTENT_OVERFLOW issue detected in {img_path}. Annotated image saved as {result}.")
+            else:
+                print(f"No CONTENT_OVERFLOW issue found in {img_path}.")
+
+# Test the directory
+directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/CONTENT_OVERFLOW/"
+save_directory = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/CONTENT_OVERFLOW_ANNOTATED"
+test_directory(directory_path, save_directory)
 
 # detect_content_overflow(
 #     "9.jpg", "CONTENT_OVERFLOW.png")

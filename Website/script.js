@@ -20,7 +20,7 @@ async function getReport() {
   //   method: 'GET',
   //   headers: { 'Content-Type': 'application/json' }
   // })
- 
+
   if (response.status === 404) return
   reportsData = await response.json()
 
