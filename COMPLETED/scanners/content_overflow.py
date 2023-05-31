@@ -157,7 +157,7 @@ def test_directory(directory_path, save_directory):
                 print(f"No CONTENT_OVERFLOW issue found in {img_path}.")
 
 # Test the directory
-directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/CONTENT_OVERFLOW/"
+directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/x/"
 save_directory = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/CONTENT_OVERFLOW_ANNOTATED"
 test_directory(directory_path, save_directory)
 

@@ -2,17 +2,16 @@ import pytesseract
 import cv2
 import numpy as np
 import re
-import itertools
 
 import os
 
 # Constants
 MIN_CONTOUR_SIZE = 0
-MIN_ASPECT_RATIO = 1
-MAX_ASPECT_RATIO = 300
-MIN_SOLIDITY = 0.9
+MIN_ASPECT_RATIO = 0.1
+MAX_ASPECT_RATIO = 3000
+MIN_SOLIDITY = 0
 OVERLAP_THRESHOLD = 0.1
-THRESHOLD_CONFIDENCE=0.5
+
 
 def detect_text_overlap(img_path, save_path):
     img = load_image(img_path)
@@ -34,34 +33,28 @@ def detect_text_overlap(img_path, save_path):
    # Visualize contours
     cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
     cv2.imwrite("contours_text_overlap.jpg", img_copy)
-    # Generate pairwise combinations of contours
-    contour_pairs = itertools.combinations(contours, 2)
-
-    for contour1, contour2 in contour_pairs:
-        if is_region_of_interest(contour1) and is_region_of_interest(contour2):
+    for i, contour1 in enumerate(contours):
+        if is_region_of_interest(contour1):
             x1, y1, w1, h1 = cv2.boundingRect(contour1)
             crop_img1 = img[y1:y1+h1, x1:x1+w1]
 
             if contains_text(crop_img1):
-                x2, y2, w2, h2 = cv2.boundingRect(contour2)
-                crop_img2 = img[y2:y2+h2, x2:x2+w2]
+                for j in range(i+1, len(contours)):
+                    contour2 = contours[j]
+                    if is_region_of_interest(contour2):
+                        x2, y2, w2, h2 = cv2.boundingRect(contour2)
+                        crop_img2 = img[y2:y2+h2, x2:x2+w2]
 
-                if contains_text(crop_img2):
-                    overlap_ratio = compute_overlap_ratio(
-                        x1, y1, w1, h1, x2, y2, w2, h2)
+                        if contains_text(crop_img2):
+                            overlap_ratio = compute_overlap_ratio(
+                                x1, y1, w1, h1, x2, y2, w2, h2)
 
-                    if overlap_ratio > OVERLAP_THRESHOLD:
-                        found_issue = True
-                        cv2.rectangle(img_copy, (x1, y1),
-                                      (x1+w1, y1+h1), (0, 0, 255), 2)
-                        cv2.rectangle(img_copy, (x2, y2),
-                                      (x2+w2, y2+h2), (0, 0, 255), 2)
-
-    if found_issue:
-        cv2.imwrite(save_path, img_copy)
-        return save_path
-    else:
-        return ""
+                            if overlap_ratio > OVERLAP_THRESHOLD:
+                                found_issue = True
+                                cv2.rectangle(img_copy, (x1, y1),
+                                              (x1+w1, y1+h1), (0, 0, 255), 2)
+                                cv2.rectangle(img_copy, (x2, y2),
+                                              (x2+w2, y2+h2), (0, 0, 255), 2)
 
     if found_issue:
         # print("Found TEXT_OVERLAP issue")
@@ -78,8 +71,8 @@ def load_image(img_path):
 
 def preprocess_image(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(6, 6))
-    # gray = clahe.apply(gray)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(6, 6))
+    gray = clahe.apply(gray)
     return gray
 
 
@@ -105,29 +98,20 @@ def find_contours(thresh):
 
 def is_region_of_interest(contour):
     x, y, w, h = cv2.boundingRect(contour)
-    if w * h < MIN_CONTOUR_SIZE or not MIN_ASPECT_RATIO <= w / h <= MAX_ASPECT_RATIO:
+    if w * h < MIN_CONTOUR_SIZE or not (MIN_ASPECT_RATIO <= w / h <= MAX_ASPECT_RATIO):
         return False
-    return True
+    area = cv2.contourArea(contour)
+    hull = cv2.convexHull(contour)
+    hull_area = cv2.contourArea(hull)
+    solidity = float(area) / hull_area
+    return solidity >= MIN_SOLIDITY
 
 
 def contains_text(crop_img):
     crop_img_gray = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
-    text = pytesseract.image_to_string(crop_img_gray, config='--psm 6 --oem 1')
-    text = text.strip()
-
-    if len(text) == 0:
-        return False
-
-    # Calculate the average confidence level of individual characters
-    confidences = pytesseract.image_to_boxes(crop_img_gray, config='--psm 6 --oem 1')
-    confidences = [float(line.split(' ')[-1]) for line in confidences.splitlines()]
-    average_confidence = sum(confidences) / len(confidences)
-
-    # Filter out areas with crystal-clear text
-    if average_confidence > THRESHOLD_CONFIDENCE:
-        return False
-
-    return True
+    text = pytesseract.image_to_string(
+        crop_img_gray,config='--psm 6 --oem 1')
+    return re.search(r'\w', text)
 
 
 def compute_overlap_ratio(x1, y1, w1, h1, x2, y2, w2, h2):
@@ -164,14 +148,12 @@ def test_directory(directory_path, save_directory):
             # Call the detect_text_overlap function
             result = detect_text_overlap(img_path, save_path)
             if result:
-                print(
-                    f"TEXT_OVERLAP issue detected in {img_path}. Annotated image saved as {result}.")
+                print(f"TEXT_OVERLAP issue detected in {img_path}. Annotated image saved as {result}.")
             else:
                 print(f"No TEXT_OVERLAP issue found in {img_path}.")
 
-
 # Test the directory
-directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/x/"
+directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/TEXT_OVERLAP/"
 save_directory = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/TEXT_OVERLAP_ANNOTATED"
 test_directory(directory_path, save_directory)
 
