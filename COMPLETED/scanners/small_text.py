@@ -129,7 +129,7 @@ def is_cropped_text(contour, image_width, image_height):
 def contains_text(crop_img):
     gray = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
     text = pytesseract.image_to_string(
-        gray, lang='eng', config='--psm 6 --oem 1')
+        gray, config='--psm 6 --oem 1')
     return re.search(r'\w', text)
 
 

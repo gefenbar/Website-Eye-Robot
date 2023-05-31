@@ -185,7 +185,7 @@ def index():
                             saved_path = s3Uploader.upload_to_s3(
                                 issue, 'eye-robot', f'{img_path}/{save_path}')
                             mongoDbClient.update_array(
-                                'reports', input_url, resolution, scanner_name.replace('', ' '), saved_path, url_)
+                                'reports', input_url, resolution, scanner_name.replace('_', ' '), saved_path, url_)
 
                 delete_file(img_path)
 
