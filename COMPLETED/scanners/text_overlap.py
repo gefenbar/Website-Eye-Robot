@@ -5,28 +5,25 @@ import re
 import os
 
 # Constants
-MIN_CONTOUR_SIZE = 10
-MIN_ASPECT_RATIO = 3
-MAX_ASPECT_RATIO = 800
+MIN_CONTOUR_SIZE = 8
+MIN_ASPECT_RATIO = 2
+MAX_ASPECT_RATIO = 100
 MIN_SOLIDITY = 0
 OVERLAP_THRESHOLD = 0.0000001
 
 
 def detect_text_overlap(img_path, save_path):
     img = load_image(img_path)
-    cv2.imwrite("original_image_text_overlap.jpg", img)
-
-    # denoised = denoise_image(img)
-    # cv2.imwrite("denoised_image_text_overlap.jpg", denoised)
+    # cv2.imwrite("original_image_text_overlap.jpg", img)
 
     gray = preprocess_image(img)
-    cv2.imwrite("grayscale_image_text_overlap.jpg", gray)
+    # cv2.imwrite("grayscale_image_text_overlap.jpg", gray)
 
     thresh = threshold_image(gray)
-    cv2.imwrite("thresholded_image_text_overlap.jpg", thresh)
+    # cv2.imwrite("thresholded_image_text_overlap.jpg", thresh)
 
     thresh = apply_morphological_operations(thresh)
-    cv2.imwrite("morphological_operations_text_overlap.jpg", thresh)
+    # cv2.imwrite("morphological_operations_text_overlap.jpg", thresh)
 
     contours = find_contours(thresh)
     img_copy = img.copy()
@@ -35,8 +32,8 @@ def detect_text_overlap(img_path, save_path):
     visited_contours = {}
 
     # Visualize contours
-    cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
-    cv2.imwrite("contours_text_overlap.jpg", img_copy)
+    # cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
+    # cv2.imwrite("contours_text_overlap.jpg", img_copy)
 
     for i in range(len(contours)):
         if is_region_of_interest(contours[i]):
@@ -45,37 +42,35 @@ def detect_text_overlap(img_path, save_path):
 
             if contains_text(crop_img1):
                 # Save the contour image with a name according to its index
-                contour_img_path = f"/home/gefen/Website-Eye-Robot/contours/contour1_{i}.png"
-                cv2.imwrite(contour_img_path, crop_img1)
+                # contour_img_path = f"/home/gefen/Website-Eye-Robot/contours/contour1_{i}.png"
+                # cv2.imwrite(contour_img_path, crop_img1)
 
                 print(f"i: {i}")
                 for j in range(i+1, len(contours)):
-                    if is_region_of_interest(contours[j]) and j not in visited_contours:
-                        x2, y2, w2, h2 = cv2.boundingRect(contours[j])
-                        crop_img2 = img[y2:y2+h2, x2:x2+w2]
+                    x2, y2, w2, h2 = cv2.boundingRect(contours[j])
+                    if is_near_by(x1, y1, w1, h1, x2, y2, w2, h2):
+                        if is_region_of_interest(contours[j]) and j not in visited_contours:
+                            crop_img2 = img[y2:y2+h2, x2:x2+w2]
 
-                        if contains_text(crop_img2):
-                            if j in computation_results:
-                                overlap_ratio = computation_results[j]
-                            else:
+                            if contains_text(crop_img2):
                                 overlap_ratio = compute_overlap_ratio(
                                     x1, y1, w1, h1, x2, y2, w2, h2)
-                                computation_results[j] = overlap_ratio
-                                print(f"j: {j}")
 
-                            if overlap_ratio > OVERLAP_THRESHOLD:
-                                visited_contours[j] = contours[j]
-                                print("found")
-                                found_issue = True
-                                cv2.rectangle(img_copy, (x1, y1),
-                                              (x1+w1, y1+h1), (0, 0, 255), 2)
-                                cv2.rectangle(img_copy, (x2, y2),
-                                              (x2+w2, y2+h2), (0, 0, 255), 2)
+                                if overlap_ratio > OVERLAP_THRESHOLD:
+                                    visited_contours[j] = contours[j]
+                                    print("found")
+                                    found_issue = True
+                                    cv2.rectangle(img_copy, (x1, y1),
+                                                  (x1+w1, y1+h1), (0, 0, 255), 2)
+                                    cv2.rectangle(img_copy, (x2, y2),
+                                                  (x2+w2, y2+h2), (0, 0, 255), 2)
 
     if found_issue:
+        print("Found TEXT_OVERLAP issue")
         cv2.imwrite(save_path, img_copy)
         return save_path
     else:
+        print("Not found TEXT_OVERLAP issue")
         return ""
 
 
@@ -83,8 +78,12 @@ def load_image(img_path):
     return cv2.imread(img_path)
 
 
-# def denoise_image(img):
-#     return cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
+def is_near_by(x1, y1, w1, h1, x2, y2, w2, h2):
+    minimal_x = min(x1, x2)
+    minimal_y = min(y1, y2)
+    if (minimal_x == x1 and x1+w1 < x2) or (minimal_x == x2 and x2+w2 < x1) or (minimal_y == y1 and y1+h1 < y2) or (minimal_y == y2 and y2+h2 < y1):
+        return False
+    return True
 
 
 def preprocess_image(img):
@@ -94,11 +93,11 @@ def preprocess_image(img):
 
 def threshold_image(gray):
     return cv2.adaptiveThreshold(
-        gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 21, 11)
+        gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 11)
 
 
 def apply_morphological_operations(thresh):
-    kernel_size = 5
+    kernel_size = 3
     kernel = cv2.getStructuringElement(
         cv2.MORPH_RECT, (kernel_size, kernel_size))
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
@@ -159,26 +158,26 @@ def compute_overlap_ratio(x1, y1, w1, h1, x2, y2, w2, h2):
     return overlap_ratio
 
 
-def test_directory(directory_path, save_directory):
-    if not os.path.exists(save_directory):
-        os.makedirs(save_directory)
+# def test_directory(directory_path, save_directory):
+#     if not os.path.exists(save_directory):
+#         os.makedirs(save_directory)
 
-    for filename in os.listdir(directory_path):
-        if filename.endswith(".png") or filename.endswith(".jpg"):
-            img_path = os.path.join(directory_path, filename)
-            save_path = os.path.join(save_directory, filename)
+#     for filename in os.listdir(directory_path):
+#         if filename.endswith(".png") or filename.endswith(".jpg"):
+#             img_path = os.path.join(directory_path, filename)
+#             save_path = os.path.join(save_directory, filename)
 
-            result = detect_text_overlap(img_path, save_path)
-            if result:
-                print(
-                    f"TEXT_OVERLAP issue detected in {img_path}. Annotated image saved as {result}.")
-            else:
-                print(f"No TEXT_OVERLAP issue found in {img_path}.")
+#             result = detect_text_overlap(img_path, save_path)
+#             if result:
+#                 print(
+#                     f"TEXT_OVERLAP issue detected in {img_path}. Annotated image saved as {result}.")
+#             else:
+#                 print(f"No TEXT_OVERLAP issue found in {img_path}.")
 
 
-# Test the directory
-directory_path = "/home/gefen/Website-Eye-Robot/TESTS/x/"
-save_directory = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/TEXT_OVERLAP_ANNOTATED"
-test_directory(directory_path, save_directory)
+# # Test the directory
+# directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/TEXT_OVERLAP/"
+# save_directory = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/TEXT_OVERLAP_ANNOTATED"
+# test_directory(directory_path, save_directory)
 
 # detect_text_overlap("/home/gefen/Website-Eye-Robot/screenshots_375x667/2_1_0.png", "TEXT_OVERLAP.png")

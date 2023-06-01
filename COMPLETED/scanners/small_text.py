@@ -51,11 +51,11 @@ def detect_small_text(img_path, save_path):
                 cv2.rectangle(img_copy, (x, y), (x+w, y+h), (15, 15, 245), 2)
 
     if found_issue:
-        # print("Found SMALL_TEXT issue")
+        print("Found SMALL_TEXT issue")
         cv2.imwrite(save_path, img_copy)
         return save_path
     else:
-        # print("Not found SMALL_TEXT issue")
+        print("Not found SMALL_TEXT issue")
         return ""
 
 
