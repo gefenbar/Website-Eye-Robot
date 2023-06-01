@@ -9,7 +9,7 @@ import os
 # Constants
 MIN_CONTOUR_SIZE = 10
 MIN_ASPECT_RATIO = 2
-MAX_ASPECT_RATIO = 1000
+MAX_ASPECT_RATIO = 5000
 MIN_SOLIDITY = 0
 OVERFLOW_THRESHOLD = 0.1
 
@@ -24,34 +24,59 @@ def detect_content_overflow(img_path, save_path):
     thresh = threshold_image(gray)
     cv2.imwrite("thresholded_image_content_overflow.jpg", thresh)
 
-    thresh = apply_morphological_operations(thresh)
-    cv2.imwrite("morphological_operations_content_overflow.jpg", thresh)
-
-    contours = find_contours(thresh)
+    thresh_text = apply_morphological_operations(thresh, 'text')
+    cv2.imwrite(
+        "morphological_operations_text_content_overflow.jpg", thresh_text)
+    thresh_container = apply_morphological_operations(thresh, '')
+    cv2.imwrite(
+        "morphological_operations_container_content_overflow.jpg", thresh_container)
+    contours_text = find_contours(thresh_text)
+    contours_container = find_contours(thresh_container)
     img_copy = img.copy()
     found_issue = False
-
+    visited_contours = {}
     # Visualize contours
     cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
     cv2.imwrite("contours_content_overflow.jpg", img_copy)
 
-    for contour in contours:
-        if is_region_of_interest(contour):
-            x, y, w, h = cv2.boundingRect(contour)
-            crop_img = img[y:y+h, x:x+w]
-            cv2.imwrite(
-                f"/home/gefen/Website-Eye-Robot/contours/{str(contour)}.jpg", crop_img)
+    for i in range(len(contours)):
+        if is_region_of_interest(contours[i]):
+            x1, y1, w1, h1 = cv2.boundingRect(contours[i])
+            crop_img1 = img[y1:y1+h1, x1:x1+w1]
 
-            if contains_text(crop_img) and is_content_overflow(crop_img, contours):
-                found_issue = True
-                cv2.rectangle(img_copy, (x, y), (x+w, y+h), (255, 0, 0), 2)
+            if not contains_text(crop_img1):
+                # Save the contour image with a name according to its index
+                contour_img_path = f"/home/gefen/Website-Eye-Robot/contours/contour1_{i}.png"
+                cv2.imwrite(contour_img_path, crop_img1)
+
+                print(f"i: {i}")
+                for j in range(i+1, len(contours)):
+                    x2, y2, w2, h2 = cv2.boundingRect(contours[j])
+                    if is_near_by(x1, y1, w1, h1, x2, y2, w2, h2):
+                        print(f"j: {j}")
+
+                        if is_region_of_interest(contours[j]) and j not in visited_contours:
+                            crop_img2 = img[y2:y2+h2, x2:x2+w2]
+
+                            if contains_text(crop_img2):
+                                overlap_ratio = compute_content_overflow(
+                                    x1, y1, w1, h1, x2, y2, w2, h2)
+
+                                if overlap_ratio > OVERFLOW_THRESHOLD:
+                                    visited_contours[j] = contours[j]
+                                    print("found")
+                                    found_issue = True
+                                    cv2.rectangle(img_copy, (x1, y1),
+                                                  (x1+w1, y1+h1), (0, 0, 255), 2)
+                                    cv2.rectangle(img_copy, (x2, y2),
+                                                  (x2+w2, y2+h2), (0, 0, 255), 2)
 
     if found_issue:
-        # print("Found CONTENT_OVERFLOW issue")
+        print("Found CONTENT_OVERFLOW issue")
         cv2.imwrite(save_path, img_copy)
         return save_path
     else:
-        # print("Not found CONTENT_OVERFLOW issue")
+        print("Not found CONTENT_OVERFLOW issue")
         return ""
 
 
@@ -67,16 +92,19 @@ def preprocess_image(img):
 
 
 def threshold_image(gray):
-    return cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 13, 5)
+    return cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
 
 
-def apply_morphological_operations(thresh):
-    kernel_size =3
+def apply_morphological_operations(thresh, object_type):
+    if (object_type == 'text'):
+        kernel_size = 3
+    else:
+        kernel_size = 11
     kernel_shape = cv2.MORPH_RECT
     kernel = cv2.getStructuringElement(
         kernel_shape, (kernel_size, kernel_size))
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-    # thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
     return thresh
 
 
@@ -113,51 +141,33 @@ def contains_text(crop_img):
     return re.search(r'\w', text)
 
 
-def is_content_overflow(img, contours):
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # Convert to grayscale
-    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY)  # Threshold the image
+def is_near_by(x1, y1, w1, h1, x2, y2, w2, h2):
+    minimal_x = min(x1, x2)
+    minimal_y = min(y1, y2)
+    reducer = 30
+    if (minimal_x == x1 and x1+w1 < x2-reducer) or (minimal_x == x2 and x2+w2 < x1-reducer) or (minimal_y == y1 and y1+h1 < y2-reducer) or (minimal_y == y2 and y2+h2 < y1-reducer):
+        return False
+    return True
 
-    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-    for i in range(len(contours)):
-        # check if contour is at the top level of hierarchy
-        if hierarchy[0][i][3] == -1:
-            x, y, w, h = cv2.boundingRect(contours[i])
-            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+def compute_content_overflow(x1, y1, w1, h1, x2, y2, w2, h2):
+    area1 = w1 * h1
+    area2 = w2 * h2
 
-    # Perform OCR on each bounding box and get boxes
-    boxes = pytesseract.image_to_boxes(img)
-    boxes = boxes.split("\n")
+    inter_x = max(x1, x2)
+    inter_y = max(y1, y2)
+    inter_w = min(x1+w1, x2+w2) - inter_x
+    inter_h = min(y1+h1, y2+h2) - inter_y
 
-    # Check if text is overflowing its container by aspect ratio
-    for box in boxes:
-        # parse box information
-        box_values = box.split(" ")
-        if len(box_values) >= 6:  # Check if there are enough values to unpack
-            char, x1, y1, x2, y2 = box_values[:5]
-            x1 = int(x1)
-            y1 = int(y1)
-            x2 = int(x2)
-            y2 = int(y2)
-            w1 = x2 - x1  # width of character
-            h1 = y2 - y1  # height of character
-            ar1 = w1 / h1  # aspect ratio of character
+    if inter_w > 0 and inter_h > 0:
+        print("intersection!!!")
+        inter_area = inter_w * inter_h
+        union_area = area1 + area2 - inter_area
+        overlap_ratio = inter_area / union_area
+    else:
+        overlap_ratio = 0
 
-            for i in range(len(contours)):
-                # check if contour is at the top level of hierarchy
-                if hierarchy[0][i][3] == -1:
-                    x3, y3, w3, h3 = cv2.boundingRect(contours[i])
-                    ar3 = w3 / h3  # aspect ratio of bounding box
-
-                    # check if character is inside bounding box
-                    if x1 >= x3 and y1 >= y3 and x2 <= x3 + w3 and y2 <= y3 + h3:
-                        # check if aspect ratios are significantly different
-                        if abs(ar1 - ar3) > 0.5:  # adjust this threshold according to your font size and shape
-                            print("Text is overflowing!")
-                            print("Character:", char)
-                            print("Character aspect ratio:", ar1)
-                            print("Bounding box aspect ratio:", ar3)
-                            return True
+    return overlap_ratio
 
 
 def test_directory(directory_path, save_directory):
@@ -182,7 +192,7 @@ def test_directory(directory_path, save_directory):
 
 
 # Test the directory
-directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/CONTENT_OVERFLOW/"
+directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/x/"
 save_directory = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/CONTENT_OVERFLOW_ANNOTATED"
 test_directory(directory_path, save_directory)
 

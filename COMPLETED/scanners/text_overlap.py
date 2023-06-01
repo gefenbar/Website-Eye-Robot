@@ -28,7 +28,6 @@ def detect_text_overlap(img_path, save_path):
     contours = find_contours(thresh)
     img_copy = img.copy()
     found_issue = False
-    computation_results = {}
     visited_contours = {}
 
     # Visualize contours
@@ -77,13 +76,6 @@ def detect_text_overlap(img_path, save_path):
 def load_image(img_path):
     return cv2.imread(img_path)
 
-
-def is_near_by(x1, y1, w1, h1, x2, y2, w2, h2):
-    minimal_x = min(x1, x2)
-    minimal_y = min(y1, y2)
-    if (minimal_x == x1 and x1+w1 < x2) or (minimal_x == x2 and x2+w2 < x1) or (minimal_y == y1 and y1+h1 < y2) or (minimal_y == y2 and y2+h2 < y1):
-        return False
-    return True
 
 
 def preprocess_image(img):
@@ -136,6 +128,14 @@ def contains_text(crop_img):
     text = pytesseract.image_to_string(crop_img_gray,
                                        config='--psm 6 --oem 1')
     return re.search(r'\w', text)
+
+
+def is_near_by(x1, y1, w1, h1, x2, y2, w2, h2):
+    minimal_x = min(x1, x2)
+    minimal_y = min(y1, y2)
+    if (minimal_x == x1 and x1+w1 < x2) or (minimal_x == x2 and x2+w2 < x1) or (minimal_y == y1 and y1+h1 < y2) or (minimal_y == y2 and y2+h2 < y1):
+        return False
+    return True
 
 
 def compute_overlap_ratio(x1, y1, w1, h1, x2, y2, w2, h2):
