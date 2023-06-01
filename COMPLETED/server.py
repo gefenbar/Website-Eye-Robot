@@ -1,6 +1,5 @@
 import time
 import os
-import threading
 import pandas as pd
 import bson.json_util as json_util
 import shutil
@@ -63,7 +62,7 @@ def index():
 
         paths_to_images = set()
 
-        def main_task(url, pages_url):
+        def main_task(url):
             resolutions = [(1920, 1080), (1366, 768), (375, 667)]
             driver = webdriver.Chrome(executable_path='chromedriver')
             try:
@@ -141,13 +140,11 @@ def index():
             finally:
                 driver.quit()
 
-            scanner_names = ['color_contrast', 'small_text',
-                             'text_overlap', 'edge_overflow', 'content_overflow']
+            scanner_names = ['color_contrast', 'edge_overflow',
+                             'small_text', 'content_overflow', 'text_overlap']
 
             issue_found = False
 
-            lock = threading.Lock()
-            threads_list = []
             processed = []
 
             def process_image(img_path, resolution):
@@ -178,38 +175,24 @@ def index():
                             img_path, save_path)
 
                     if issue:
-                        with lock:
-                            url_ = img_path.split(
-                                '/')[1].replace('_', '/').split('~')[0]
-                            issue_found = True
-                            saved_path = s3Uploader.upload_to_s3(
-                                issue, 'eye-robot', f'{img_path}/{save_path}')
-                            mongoDbClient.update_array(
-                                'reports', input_url, resolution, scanner_name.replace('_', ' '), saved_path, url_)
+
+                        url_ = img_path.split(
+                            '/')[1].replace('_', '/').split('~')[0]
+                        issue_found = True
+                        saved_path = s3Uploader.upload_to_s3(
+                            issue, 'eye-robot', f'{img_path}/{save_path}')
+                        mongoDbClient.update_array(
+                            'reports', input_url, resolution, scanner_name.replace('_', ' '), saved_path, url_)
 
                 delete_file(img_path)
 
             for path_to_image in paths_to_images:
                 resolution = path_to_image.split(
                     '/')[0]
-                t = threading.Thread(
-                    target=process_image, args=(path_to_image, resolution))
-                threads_list.append(t)
-                t.start()
-
-            for t in threads_list:
-                t.join()
-
+                process_image(img_path, resolution)
             print("Scan Completed")
 
-        # Create a list to store the URLs of the pages visited
-        page_urls = []
-
-        # Create a thread for the main task
-        main_thread = threading.Thread(
-            target=main_task, args=(input_url, page_urls))
-        main_thread.start()
-
+        main_task(url)
         return jsonify({"message": "Task started successfully."}), 200
 
 
@@ -244,4 +227,4 @@ def create_directories_for_screenshots():
 
 if __name__ == '__main__':
     print('listening on port 3002')
-    app.run(port=3002)
+    app.run(host='0.0.0.0', port=3002)

@@ -55,17 +55,6 @@ def detect_text_overlap(img_path, save_path):
                         crop_img2 = img[y2:y2+h2, x2:x2+w2]
 
                         if contains_text(crop_img2):
-                            # Check if contour1 contains contour2
-                            if x1 <= x2 and y1 <= y2 and x1+w1 >= x2+w2 and y1+h1 >= y2+h2:
-                                visited_contours[j] = contours[j]
-                                print("found")
-                                found_issue = True
-                                cv2.rectangle(img_copy, (x1, y1),
-                                              (x1+w1, y1+h1), (0, 0, 255), 2)
-                                cv2.rectangle(img_copy, (x2, y2),
-                                              (x2+w2, y2+h2), (0, 0, 255), 2)
-                                continue
-
                             if j in computation_results:
                                 overlap_ratio = computation_results[j]
                             else:
