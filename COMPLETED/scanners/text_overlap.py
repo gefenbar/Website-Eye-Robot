@@ -4,18 +4,21 @@ import numpy as np
 import re
 import os
 
-OVERLAP_THRESHOLD = 0.0000001
 # Constants
 MIN_CONTOUR_SIZE = 10
 MIN_ASPECT_RATIO = 3
 MAX_ASPECT_RATIO = 800
 MIN_SOLIDITY = 0
+OVERLAP_THRESHOLD = 0.0000001
 
 
 def detect_text_overlap(img_path, save_path):
     img = load_image(img_path)
     cv2.imwrite("original_image_text_overlap.jpg", img)
-    
+
+    # denoised = denoise_image(img)
+    # cv2.imwrite("denoised_image_text_overlap.jpg", denoised)
+
     gray = preprocess_image(img)
     cv2.imwrite("grayscale_image_text_overlap.jpg", gray)
 
@@ -41,26 +44,9 @@ def detect_text_overlap(img_path, save_path):
             crop_img1 = img[y1:y1+h1, x1:x1+w1]
 
             if contains_text(crop_img1):
-                # Check if the contour contains smaller text regions
-                sub_contours = find_contours(
-                    threshold_image(preprocess_image(crop_img1)))
-                has_smaller_text = False
-                for sub_contour in sub_contours:
-                    if is_region_of_interest(sub_contour) and contains_text(img[y1:y1+h1, x1:x1+w1]):
-                        has_smaller_text = True
-                        break
-
-                if has_smaller_text:
-                    # Save the contour image with a name according to its index
-                    contour_img_path = f"/home/gefen/Website-Eye-Robot/contours/contour1_{i}.png"
-                    cv2.imwrite(contour_img_path, crop_img1)
-                    found_issue = True
-                    cv2.rectangle(img_copy, (x1, y1),
-                                  (x1+w1, y1+h1), (0, 0, 255), 2)
-                    cv2.rectangle(img_copy, (x2, y2),
-                                  (x2+w2, y2+h2), (0, 0, 255), 2)
-                    print(f"i: {i}")
-                    continue
+                # Save the contour image with a name according to its index
+                contour_img_path = f"/home/gefen/Website-Eye-Robot/contours/contour1_{i}.png"
+                cv2.imwrite(contour_img_path, crop_img1)
 
                 print(f"i: {i}")
                 for j in range(i+1, len(contours)):
@@ -107,6 +93,11 @@ def detect_text_overlap(img_path, save_path):
 def load_image(img_path):
     return cv2.imread(img_path)
 
+
+# def denoise_image(img):
+#     return cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
+
+
 def preprocess_image(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     return gray
@@ -114,15 +105,15 @@ def preprocess_image(img):
 
 def threshold_image(gray):
     return cv2.adaptiveThreshold(
-        gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 11)
+        gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 21, 11)
 
 
 def apply_morphological_operations(thresh):
-    kernel_size = 9
+    kernel_size = 5
     kernel = cv2.getStructuringElement(
         cv2.MORPH_RECT, (kernel_size, kernel_size))
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-    thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    # thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
     return thresh
 
 
@@ -155,7 +146,7 @@ def is_region_of_interest(contour):
 def contains_text(crop_img):
     crop_img_gray = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
     text = pytesseract.image_to_string(crop_img_gray,
-                                       config='--psm 6')
+                                       config='--psm 6 --oem 1')
     return re.search(r'\w', text)
 
 
@@ -197,7 +188,7 @@ def test_directory(directory_path, save_directory):
 
 
 # Test the directory
-directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/TEXT_OVERLAP/"
+directory_path = "/home/gefen/Website-Eye-Robot/TESTS/x/"
 save_directory = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/TEXT_OVERLAP_ANNOTATED"
 test_directory(directory_path, save_directory)
 
