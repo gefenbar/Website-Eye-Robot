@@ -3,7 +3,8 @@ import cv2
 import numpy as np
 import re
 # for testing
-# import os
+import os
+
 
 def detect_small_text(img_path, save_path):
     img = load_image(img_path)
@@ -130,23 +131,21 @@ def is_cropped_text(contour, image_width, image_height):
 def contains_text(crop_img):
     gray = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
     text = pytesseract.image_to_string(gray, config='--psm 6 --oem 1')
-    
+
     # Exclude specific characters or symbols
-    excluded_characters = excluded_characters = [',', '.', "'", 'o', '•', '·', '⋅', 'o']  
+    excluded_characters = [',', '.', "'", 'o', '•', '·', '⋅', 'o']
 
     # Check if the detected text contains any excluded characters
     for char in excluded_characters:
         if char in text:
             return False
-        
-    return re.search(r'\w', text)
 
+    return re.search(r'\w', text)
 
 
 def zoom_in(img, zoom_factor):
     zoomed_img = cv2.resize(img, None, fx=zoom_factor, fy=zoom_factor)
     return zoomed_img
-
 
 
 # def test_directory(directory_path, save_directory):
@@ -168,9 +167,9 @@ def zoom_in(img, zoom_factor):
 #             else:
 #                 print(f"No SMALL_TEXT issue found in {img_path}.")
 
-# Test the directory
-# directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/NO_ISSUES/"
-# save_directory = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/SMALL_TEXT_ANNOTATED"
+# # Test the directory
+# directory_path = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/SMALL_TEXT/"
+# save_directory = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/SMALL_TEXT_ANNOTATED"
 # test_directory(directory_path, save_directory)
 # Test image
 # detect_small_text("4.jpg", "SMALL_TEXT.png")

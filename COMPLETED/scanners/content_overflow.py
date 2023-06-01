@@ -19,25 +19,23 @@ def detect_content_overflow(img_path, save_path):
     # cv2.imwrite("original_image_content_overflow.jpg", img)
 
     gray = preprocess_image(img)
-    cv2.imwrite("grayscale_image_content_overflow.jpg", gray)
+    # cv2.imwrite("grayscale_image_content_overflow.jpg", gray)
 
     thresh = threshold_image(gray)
-    cv2.imwrite("thresholded_image_content_overflow.jpg", thresh)
+    # cv2.imwrite("thresholded_image_content_overflow.jpg", thresh)
 
     thresh_text = apply_morphological_operations(thresh, 'text')
-    cv2.imwrite(
-        "morphological_operations_text_content_overflow.jpg", thresh_text)
+    # cv2.imwrite("morphological_operations_text_content_overflow.jpg", thresh_text)
     thresh_container = apply_morphological_operations(thresh, '')
-    cv2.imwrite(
-        "morphological_operations_container_content_overflow.jpg", thresh_container)
+    # cv2.imwrite( "morphological_operations_container_content_overflow.jpg", thresh_container)
     contours_text = find_contours(thresh_text)
     contours_container = find_contours(thresh_container)
     img_copy = img.copy()
     found_issue = False
     visited_contours = {}
     # Visualize contours
-    cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
-    cv2.imwrite("contours_content_overflow.jpg", img_copy)
+    # cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
+    # cv2.imwrite("contours_content_overflow.jpg", img_copy)
 
     for i in range(len(contours)):
         if is_region_of_interest(contours[i]):
@@ -46,8 +44,8 @@ def detect_content_overflow(img_path, save_path):
 
             if not contains_text(crop_img1):
                 # Save the contour image with a name according to its index
-                contour_img_path = f"/home/gefen/Website-Eye-Robot/contours/contour1_{i}.png"
-                cv2.imwrite(contour_img_path, crop_img1)
+                # contour_img_path = f"/home/gefen/Website-Eye-Robot/contours/contour1_{i}.png"
+                # cv2.imwrite(contour_img_path, crop_img1)
 
                 print(f"i: {i}")
                 for j in range(i+1, len(contours)):
@@ -170,31 +168,31 @@ def compute_content_overflow(x1, y1, w1, h1, x2, y2, w2, h2):
     return overlap_ratio
 
 
-def test_directory(directory_path, save_directory):
-    # Create the save directory if it doesn't exist
-    if not os.path.exists(save_directory):
-        os.makedirs(save_directory)
+# def test_directory(directory_path, save_directory):
+#     # Create the save directory if it doesn't exist
+#     if not os.path.exists(save_directory):
+#         os.makedirs(save_directory)
 
-    # Iterate over all files in the directory
-    for filename in os.listdir(directory_path):
-        if filename.endswith(".png") or filename.endswith(".jpg"):
-            # Construct the full paths for the input image and save path
-            img_path = os.path.join(directory_path, filename)
-            save_path = os.path.join(save_directory, filename)
+#     # Iterate over all files in the directory
+#     for filename in os.listdir(directory_path):
+#         if filename.endswith(".png") or filename.endswith(".jpg"):
+#             # Construct the full paths for the input image and save path
+#             img_path = os.path.join(directory_path, filename)
+#             save_path = os.path.join(save_directory, filename)
 
-            # Call the detect_content_overflow function
-            result = detect_content_overflow(img_path, save_path)
-            if result:
-                print(
-                    f"CONTENT_OVERFLOW issue detected in {img_path}. Annotated image saved as {result}.")
-            else:
-                print(f"No CONTENT_OVERFLOW issue found in {img_path}.")
+#             # Call the detect_content_overflow function
+#             result = detect_content_overflow(img_path, save_path)
+#             if result:
+#                 print(
+#                     f"CONTENT_OVERFLOW issue detected in {img_path}. Annotated image saved as {result}.")
+#             else:
+#                 print(f"No CONTENT_OVERFLOW issue found in {img_path}.")
 
 
-# Test the directory
-directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/x/"
-save_directory = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/CONTENT_OVERFLOW_ANNOTATED"
-test_directory(directory_path, save_directory)
+# # Test the directory
+# directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/x/"
+# save_directory = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/CONTENT_OVERFLOW_ANNOTATED"
+# test_directory(directory_path, save_directory)
 
-# detect_content_overflow(
-#     "9.jpg", "CONTENT_OVERFLOW.png")
+# # detect_content_overflow(
+# #     "9.jpg", "CONTENT_OVERFLOW.png")

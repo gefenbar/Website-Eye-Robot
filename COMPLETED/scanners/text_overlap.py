@@ -44,7 +44,7 @@ def detect_text_overlap(img_path, save_path):
                 # contour_img_path = f"/home/gefen/Website-Eye-Robot/contours/contour1_{i}.png"
                 # cv2.imwrite(contour_img_path, crop_img1)
 
-                print(f"i: {i}")
+                # print(f"i: {i}")
                 for j in range(i+1, len(contours)):
                     x2, y2, w2, h2 = cv2.boundingRect(contours[j])
                     if is_near_by(x1, y1, w1, h1, x2, y2, w2, h2):
@@ -57,7 +57,7 @@ def detect_text_overlap(img_path, save_path):
 
                                 if overlap_ratio > OVERLAP_THRESHOLD:
                                     visited_contours[j] = contours[j]
-                                    print("found")
+                                    # print("found")
                                     found_issue = True
                                     cv2.rectangle(img_copy, (x1, y1),
                                                   (x1+w1, y1+h1), (0, 0, 255), 2)
@@ -75,7 +75,6 @@ def detect_text_overlap(img_path, save_path):
 
 def load_image(img_path):
     return cv2.imread(img_path)
-
 
 
 def preprocess_image(img):
@@ -106,7 +105,7 @@ def find_contours(thresh):
 def is_region_of_interest(contour):
     x, y, w, h = cv2.boundingRect(contour)
 
-    if w * h < MIN_CONTOUR_SIZE:  # Adjust the minimum size as per your requirement
+    if w * h < MIN_CONTOUR_SIZE or w * h > 100000:  # Adjust the minimum size as per your requirement
         return False
 
     aspect_ratio = w / h
@@ -148,7 +147,7 @@ def compute_overlap_ratio(x1, y1, w1, h1, x2, y2, w2, h2):
     inter_h = min(y1+h1, y2+h2) - inter_y
 
     if inter_w > 0 and inter_h > 0:
-        print("intersection!!!")
+        # print("intersection!!!")
         inter_area = inter_w * inter_h
         union_area = area1 + area2 - inter_area
         overlap_ratio = inter_area / union_area
@@ -176,8 +175,8 @@ def compute_overlap_ratio(x1, y1, w1, h1, x2, y2, w2, h2):
 
 
 # # Test the directory
-# directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/TEXT_OVERLAP/"
-# save_directory = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/TEXT_OVERLAP_ANNOTATED"
+# directory_path = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/TEXT_OVERLAP/"
+# save_directory = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/TEXT_OVERLAP_ANNOTATED"
 # test_directory(directory_path, save_directory)
 
 # detect_text_overlap("/home/gefen/Website-Eye-Robot/screenshots_375x667/2_1_0.png", "TEXT_OVERLAP.png")
