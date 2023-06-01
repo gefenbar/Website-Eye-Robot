@@ -60,8 +60,8 @@ def load_image(img_path):
 
 def preprocess_image(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    clahe = cv2.createCLAHE(clipLimit=20.0, tileGridSize=(1, 1))
-    gray = clahe.apply(gray)
+    # clahe = cv2.createCLAHE(clipLimit=20.0, tileGridSize=(1, 1))
+    # gray = clahe.apply(gray)
     return gray
 
 
@@ -157,7 +157,7 @@ def test_directory(directory_path, save_directory):
                 print(f"No CONTENT_OVERFLOW issue found in {img_path}.")
 
 # Test the directory
-directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/x/"
+directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/CONTENT_OVERFLOW/"
 save_directory = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/CONTENT_OVERFLOW_ANNOTATED"
 test_directory(directory_path, save_directory)
 
