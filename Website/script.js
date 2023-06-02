@@ -88,13 +88,12 @@ function render(reports, url) {
   }
 
   if (loading) {
-    indicator = '<button id="download-btn" >Loading</button><br/>'
+    indicator = '<button id="download-btn" style="background-color:#999;">Loading</button><br/>'
     let dots = '';
     let numDots = 0;
     const interval = setInterval(() => {
       numDots = (numDots + 1) % 4;
       dots = '.'.repeat(numDots);
-
       const button = document.getElementById('download-btn');
       if (button) {
         button.innerHTML = `Loading${dots}`;
@@ -102,11 +101,11 @@ function render(reports, url) {
     }, 500);
   }
   else if (report.issuesFound.length === 0) {
-    indicator = '<button id="download-btn style="backgroundColor: red; ">No Issues found</button><br/>'
+    indicator = '<button id="download-btn" style="background-color: red;">No Issues found</button><br/>'
 
   }
   else {
-    indicator = '<button id="download-btn" onclick="downloadExcel() ">Download Excel</button><br/>'
+    indicator = '<button id="download-btn" style="background-color:#1f8151;" onclick="downloadExcel()">Download Excel</button><br/>'
 
   }
 
@@ -117,6 +116,7 @@ function render(reports, url) {
     screenshotImg.addEventListener('mousemove', handleMouseMove);
   });
   document.querySelector(".url").style.padding = '10px'
+
 }
 getReport()
 

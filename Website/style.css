@@ -515,7 +515,7 @@ section:last-of-type {
 
 .dropdown {
     position: fixed;
-    top: 50%;
+    top: 30%;
     left: 20px;
     transform: translateY(-50%);
   }
