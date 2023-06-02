@@ -43,7 +43,20 @@
 
     </section>
     <section id="report">
-        <h2>Scan Report</h2>
+        <div id="loading-spinner">
+            <h3 id="loading-spinner__text">
+                &zwnj;
+            </h3>
+            <div></div>
+        </div>
+        <!-- <h2>Scan Report</h2> -->
+        <div class="dropdown">
+            <button type="button" class="dropdown-toggle" onclick="toggleDropdown()">My Reports</button>
+            <select id="urls">
+            </select>
+        </div>
+
+
         <h3 id="url">&zwnj;</h3>
         <div id="content"></div>
     </section>
@@ -66,6 +79,7 @@
             </div>
         </div>
     </footer>
+    <script src="loading-spinner.js"></script>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <script src="script.js"></script>
 </body>

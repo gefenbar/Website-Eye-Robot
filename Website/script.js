@@ -1,71 +1,129 @@
-let isLoading = false;
+let loading = false
 let reportsData = []
+const serverUrl = 'http://109.67.30.38:3002'
+const select = document.querySelector('#urls')
+// const spinnerText = document.querySelector('#loading-spinner__text')
+let selected = false
+
+// Spinner()
+function toggleDropdown() {
+  var dropdown = document.querySelector('.dropdown');
+  dropdown.classList.toggle('select-open');
+}
+
 function setLoadingState(isLoading) {
-  const urlElement = document.getElementById("url");
   if (isLoading) {
-    urlElement.classList.add("loading");
+    // Spinner.show();
+    // spinnerText.innerText = "Report is being made"
   } else {
-    urlElement.classList.remove("loading");
+    // spinnerText.innerText = ""
+    // Spinner.hide()
+  }
+  loading = isLoading
+}
+
+async function loadingStatus() {
+  try {
+    const response = await fetch(`${serverUrl}/`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    setLoadingState(response.status > 200)
+
+    console.log(response.status)
+  } catch (e) {
+    setLoadingState(true)
+    return true
   }
 }
 
-
 async function getReport() {
-  setLoadingState(true);
-  const response = await fetch(' http://127.0.0.1:3002/reports', {
+  await loadingStatus();
+  const response = await fetch(`${serverUrl}/reports`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   })
-  // const response = await fetch('http://109.67.30.38:3002/reports', {
-  //   method: 'GET',
-  //   headers: { 'Content-Type': 'application/json' }
-  // })
 
   if (response.status === 404) return
   reportsData = await response.json()
 
-  let content = ''
+  const { alive, reports } = reportsData
 
-  for (const report of reportsData) {
-    content = `<h3 class="url">${report.webpageUrl}</h3>`
-    for (const issue of report.issuesFound) {
-      content += `
-      <div class="report-card">
-      <div class="card-header">
-        <h3>${issue['scannerName']}</h3>
-        <p> page url -> 
-        <a href="${issue['pageUrl']}"> ${issue['pageUrl']}</a>
-        </p>
-        <p>resolution -> <span>${issue['resolution']}</span></p>
-        </div>
-          <div class="card-screenshot">
-            <a>
-              <img class="screenshot-img" src='${issue['img']}'></img>
-            </a>
-          </div>
-        </div>`
-    }
+  setLoadingState(alive);
 
-    if (report.issuesFound == 0) {
-      downloadExcelButton = '<button id="download-btn" ">No Issues found</button><br/>'
-
-    }
-    else {
-      downloadExcelButton = '<button id="download-btn" onclick="downloadExcel()">Download Excel</button><br/>'
-    }
+  const sortedReports = reports.sort((a, b) => a.lastUpdated > b.lastUpdated ? 1 : -1)
+  render(reports, sortedReports[0].webpageUrl)
+  select.innerHTML = ''
+  for (const report of sortedReports) {
+    select.innerHTML += `<option value="${report.webpageUrl}">${report.webpageUrl}</option>`
   }
 
+  select.addEventListener('change', (e) => {
+    selected = true
+    render(reports, e.target.value)
+  })
+}
 
-  document.getElementById('content').innerHTML = downloadExcelButton + content
+function render(reports, url) {
+  let indicator;
+  let content = ''
+  const report = reports.filter(r => r.webpageUrl === url)[0]
+  content = `<h3 class="url">${report.webpageUrl}</h3>`
+  for (const issue of report.issuesFound) {
+    content += `
+          <div class="report-card">
+          <div class="card-header">
+            <h3>${issue['scannerName']}</h3>
+            <p> page url -> 
+            <a href="${issue['pageUrl']}"> ${issue['pageUrl']}</a>
+            </p>
+            <p>resolution -> <span>${issue['resolution']}</span></p>
+            </div>
+              <div class="card-screenshot">
+                <a>
+                  <img class="screenshot-img" src='${issue['img']}'></img>
+                </a>
+              </div>
+            </div>`
+  }
+
+  if (loading) {
+    indicator = '<button id="download-btn" >Loading</button><br/>'
+    let dots = '';
+    let numDots = 0;
+    const interval = setInterval(() => {
+      numDots = (numDots + 1) % 4;
+      dots = '.'.repeat(numDots);
+
+      const button = document.getElementById('download-btn');
+      if (button) {
+        button.innerHTML = `Loading${dots}`;
+      }
+    }, 500);
+  }
+  else if (report.issuesFound.length === 0) {
+    indicator = '<button id="download-btn style="backgroundColor: red; ">No Issues found</button><br/>'
+
+  }
+  else {
+    indicator = '<button id="download-btn" onclick="downloadExcel() ">Download Excel</button><br/>'
+
+  }
+
+  document.getElementById('content').innerHTML = indicator + content
   // Select screenshot images and add event listeners
   const screenshotImgs = document.querySelectorAll('.screenshot-img');
   screenshotImgs.forEach((screenshotImg) => {
     screenshotImg.addEventListener('mousemove', handleMouseMove);
   });
-  setLoadingState(false);
   document.querySelector(".url").style.padding = '10px'
 }
 getReport()
+
+setInterval(() => {
+  if (!selected)
+    getReport()
+}, 20000)
 
 function handleMouseMove(event) {
   const { left, top, width, height } = event.target.getBoundingClientRect();
@@ -81,31 +139,31 @@ function handleMouseMove(event) {
   });
 }
 
-function ScanReport() {
-  isLoading = true
+async function ScanReport() {
+  const isLoading = await loadingStatus()
+  // await sleep(250)
+  console.log(isLoading)
+  if (isLoading) {
+    alert('Scanner is currently working! please wait for it to finish!')
+    return;
+  }
+  selected = false
   // Get the URL input field value
   try {
     const urlInput = document.querySelector('#url-input').value.trim();
     // Send the URL to the server for scanning
-    fetch('http://127.0.0.1:3002/report', {
+    fetch(`${serverUrl}/report`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: urlInput })
     })
-    // fetch('http://109.67.30.38:3002/report', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ url: urlInput })
-    // })
-    setTimeout(() => {
-      getReport()
-    }, 30000)
-
-
   }
   catch (e) {
     console.log(e)
   }
+  urlInput.innerText = ''
+  await sleep(250)
+  getReport()
 }
 
 document.getElementById("scan").addEventListener("submit", (e) => {
@@ -234,3 +292,45 @@ function s2ab(s) {
   for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xff;
   return buf;
 }
+
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+
+// Create a new div element for the magnifying glass
+const magnifyingGlass = document.createElement('div');
+magnifyingGlass.className = 'magnifying-glass';
+document.body.appendChild(magnifyingGlass);
+
+// Update the position of the magnifying glass based on the mouse movement
+document.addEventListener('mousemove', (event) => {
+  const x = event.clientX;
+  const y = event.clientY;
+
+  // Set the position of the magnifying glass
+  magnifyingGlass.style.left = x + 'px';
+  magnifyingGlass.style.top = y + 'px';
+});
+
+// Hide the default mouse cursor
+document.body.style.cursor = 'none';
+
+// Override cursor styles for specific elements
+const overrideCursorStyle = (element) => {
+  element.style.cursor = 'none';
+};
+
+// Apply the cursor style override to anchors, buttons, and other clickable elements
+const clickableElements = document.querySelectorAll('a, button, [role="button"]');
+clickableElements.forEach((element) => {
+  overrideCursorStyle(element);
+});
+
+// Apply the cursor style override to URLs
+const urlElements = document.querySelectorAll('[href]');
+urlElements.forEach((element) => {
+  overrideCursorStyle(element);
+});
