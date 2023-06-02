@@ -86,26 +86,27 @@ function render(reports, url) {
               </div>
             </div>`
   }
+  let dots = '';
+  let numDots = 0;
 
+  const interval = setInterval(() => {
+    numDots = (numDots + 1) % 4;
+    dots = '.'.repeat(numDots);
+    const button = document.getElementById('download-btn');
+    if (button) {
+      button.innerHTML = `Loading${dots}`;
+    }
+  }, 500);
   if (loading) {
     indicator = '<button id="download-btn" style="background-color:#999;">Loading</button><br/>'
-    let dots = '';
-    let numDots = 0;
-    const interval = setInterval(() => {
-      numDots = (numDots + 1) % 4;
-      dots = '.'.repeat(numDots);
-      const button = document.getElementById('download-btn');
-      if (button) {
-        button.innerHTML = `Loading${dots}`;
-      }
-    }, 500);
   }
   else if (report.issuesFound.length === 0) {
     indicator = '<button id="download-btn" style="background-color: red;">No Issues found</button><br/>'
-
+    clearInterval(interval)
   }
   else {
     indicator = '<button id="download-btn" style="background-color:#1f8151;" onclick="downloadExcel()">Download Excel</button><br/>'
+    clearInterval(interval)
 
   }
 
@@ -121,7 +122,6 @@ function render(reports, url) {
 getReport()
 
 setInterval(() => {
-  if (!selected)
     getReport()
 }, 20000)
 

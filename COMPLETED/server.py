@@ -209,7 +209,6 @@ def delete_existing_folders_and_files():
         '1920x1080',
         '1366x768',
         '375x667'
-
     ]
 
     for folder in folders:
