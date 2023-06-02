@@ -1,16 +1,16 @@
-import time
+import json
+from datetime import datetime
 import os
-import pandas as pd
+import threading
 import bson.json_util as json_util
 import shutil
 
 from dotenv import load_dotenv
 
-from flask import Flask, render_template, request, jsonify, url_for, make_response, send_file
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -20,7 +20,7 @@ from scanners.color_contrast import detect_color_contrast
 from scanners.small_text import detect_small_text
 from scanners.text_overlap import detect_text_overlap
 from scanners.edge_overflow import detect_edge_overflow
-from scanners.content_overflow import detect_content_overflow
+# from scanners.content_overflow import detect_content_overflow
 
 from upload_to_s3 import S3Uploader
 from send_to_db import MongoDBClient
@@ -34,20 +34,28 @@ mongoDbClient = MongoDBClient(
 s3Uploader = S3Uploader(os.getenv('AWS_ACCESS_KEY_ID'),
                         os.getenv('AWS_SECRET_ACCESS_KEY'))
 
+thread = {'main_thread': threading.Thread()}
+
 
 @app.route("/", methods=["GET"])
 def heartbeat():
-    return "Website Eye Robot is up and running!"
+    alive = thread['main_thread'].is_alive()
+    return json.dumps(alive)
 
 
 @app.route("/reports", methods=["GET"])
 def getReports():
-
-    return json_util.dumps(mongoDbClient.find('reports'))
+    reports = mongoDbClient.find('reports')
+    alive = thread['main_thread'].is_alive()
+    response = {'reports': reports, 'alive': alive}
+    return json.dumps(response)
 
 
 @app.route("/report", methods=["POST"])
 def index():
+    alive = thread['main_thread'].is_alive()
+    if alive:
+        return json.dumps(alive)
     if request.method == "POST":
         delete_existing_folders_and_files()
         create_directories_for_screenshots()
@@ -57,12 +65,13 @@ def index():
         # Define the data variable as an empty dictionary
         mongoDbClient.insert_document('reports', {
             'webpageUrl': input_url,
-            'issuesFound': []
+            'issuesFound': [],
+            'lastUpdate': datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         })
 
         paths_to_images = set()
 
-        def main_task(url):
+        def main_task(url, page_urls):
             resolutions = [(1920, 1080), (1366, 768), (375, 667)]
             driver = webdriver.Chrome(executable_path='chromedriver')
             try:
@@ -141,7 +150,7 @@ def index():
                 driver.quit()
 
             scanner_names = ['color_contrast', 'edge_overflow',
-                             'small_text', 'content_overflow', 'text_overlap']
+                             'small_text', 'text_overlap']  # 'content_overflow',
 
             issue_found = False
 
@@ -171,8 +180,9 @@ def index():
                         issue = detect_edge_overflow(
                             img_path, save_path)
                     elif scanner_name == 'content_overflow':
-                        issue = detect_content_overflow(
-                            img_path, save_path)
+                        print()
+                        # issue = detect_content_overflow(
+                        #     img_path, save_path)
 
                     if issue:
 
@@ -189,10 +199,14 @@ def index():
             for path_to_image in paths_to_images:
                 resolution = path_to_image.split(
                     '/')[0]
-                process_image(img_path, resolution)
+                process_image(path_to_image, resolution)
             print("Scan Completed")
 
-        main_task(url)
+        page_urls = []
+        thread['main_thread'] = threading.Thread(
+            target=main_task, args=(input_url, page_urls))
+        thread['main_thread'].start()
+
         return jsonify({"message": "Task started successfully."}), 200
 
 
@@ -209,6 +223,7 @@ def delete_existing_folders_and_files():
         '1920x1080',
         '1366x768',
         '375x667'
+
     ]
 
     for folder in folders:

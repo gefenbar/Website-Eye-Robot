@@ -256,10 +256,15 @@ nav {
     text-decoration: none;
 }
 
+.card-header a{
+    border-radius: none;
+    box-shadow: none;
+
+}
+
 .card-header a:hover {
     background-color: #6930C3;
     color: #FFF;
-    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
 }
 
 @media (max-width: 768px) {
@@ -542,56 +547,47 @@ section:last-of-type {
     outline: none;
 }
 
-.dropdown select {
+.dropdown div {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
     position: absolute;
-    top: calc(100% + 5px);
+    top: calc(100% + 3px);
     left: 0;
-    width: 200px;
-    padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
     background-color: #fff;
     font-family: Arial, sans-serif;
     font-size: 14px;
     color: #333;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 3px 0 3px  rgba(0, 0, 0, 0.2);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
+    overflow: hidden;
 }
 
-.dropdown select:focus {
+.dropdown div:focus {
     outline: none;
     border-color: #555;
 }
 
-.dropdown select option {
+.dropdown div p {
     background-color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
     color: #333;
+    text-align: left;
+    padding: 5px 1rem;
 }
 
-.dropdown.select-open select {
+.dropdown div p:hover {
+    color: #fff;
+    background-color: #333;
+}
+
+.dropdown.select-open div {
     opacity: 1;
     pointer-events: auto;
 }
 
-
-.magnifying-glass {
-    position: fixed;
-    width: 50px;
-    height: 50px;
-    /* border: 2px solid #000; */
-    pointer-events: none;
-    transform: translate(-50%, -50%);
-    /* mix-blend-mode: ; */
-    z-index: 9999;
-    /* pointer-events: none; */
-    background-repeat: no-repeat;
-    background-size: 100%;
-    background-position: center;
-    background-image: url('/Website/Images/magnify_cursor.png');
-    /* Replace with the path to your magnifying glass image */
-}

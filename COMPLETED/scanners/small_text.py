@@ -27,7 +27,8 @@ def detect_small_text(img_path, save_path):
 
     img_copy = img.copy()
     found_issue = False
-
+    # cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
+    # cv2.imwrite("contours_small_text.jpg", img_copy)
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
 
@@ -49,7 +50,8 @@ def detect_small_text(img_path, save_path):
 
             if contains_text(zoomed_img):
                 found_issue = True
-                cv2.rectangle(img_copy, (x, y), (x+w, y+h), (15, 15, 245), 2)
+                cv2.rectangle(img_copy, (x, y),
+                              (x+w+10, y+h+2), (15, 15, 245), 2)
 
     if found_issue:
         print("Found SMALL_TEXT issue")
@@ -66,7 +68,7 @@ def load_image(img_path):
 
 def calculate_min_max_height(height):
     reference_height = height
-    min_height = 2
+    min_height =1
     max_height = 7
     ratio = height / reference_height
     min_height = int(ratio * min_height)
@@ -75,9 +77,7 @@ def calculate_min_max_height(height):
 
 
 def preprocess_image(img):
-    # Apply denoising before converting to grayscale
-    denoised = cv2.bilateralFilter(img, 9, 75, 75)
-    gray = cv2.cvtColor(denoised, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     return gray
 
 
@@ -88,7 +88,6 @@ def denoise_image(gray):
 
 
 def threshold_image(gray):
-    # Experiment with different thresholding methods
     _, thresh = cv2.threshold(
         gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
     return thresh
@@ -96,10 +95,9 @@ def threshold_image(gray):
 
 def apply_morphological_operations(thresh):
     kernel_size = 1
-    kernel_shape = cv2.MORPH_ELLIPSE
+    kernel_shape = cv2.MORPH_RECT
     kernel = cv2.getStructuringElement(
         kernel_shape, (kernel_size, kernel_size))
-
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
     return thresh
 
@@ -114,7 +112,7 @@ def is_full_text_contour(contour, image_width, image_height):
     # Check if contour is likely to contain full text
     x, y, w, h = cv2.boundingRect(contour)
     aspect_ratio = w / float(h)
-    if aspect_ratio > 0.1 and aspect_ratio < 0.9 and y > 0.1 * image_height:
+    if aspect_ratio > 0.1 and aspect_ratio < 1.1 and y > 0.1 * image_height and w > 0.00275*image_width:
         return True
     return False
 
@@ -122,7 +120,7 @@ def is_full_text_contour(contour, image_width, image_height):
 def is_cropped_text(contour, image_width, image_height):
     # Check if contour is too close to the image boundaries, indicating cropped text
     x, y, w, h = cv2.boundingRect(contour)
-    boundary_threshold = 0.3
+    boundary_threshold = 0.45
     if x < boundary_threshold * image_width or (x + w) > (1 - boundary_threshold) * image_width:
         return True
     return False
@@ -163,11 +161,13 @@ def zoom_in(img, zoom_factor):
 #             # Call the detect_small_text function
 #             result = detect_small_text(img_path, save_path)
 #             if result:
-#                 print(f"SMALL_TEXT issue detected in {img_path}. Annotated image saved as {result}.")
+#                 print(
+#                     f"SMALL_TEXT issue detected in {img_path}. Annotated image saved as {result}.")
 #             else:
 #                 print(f"No SMALL_TEXT issue found in {img_path}.")
 
-# # Test the directory
+
+# Test the directory
 # directory_path = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/SMALL_TEXT/"
 # save_directory = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/SMALL_TEXT_ANNOTATED"
 # test_directory(directory_path, save_directory)

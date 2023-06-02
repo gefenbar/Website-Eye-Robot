@@ -1,152 +1,19 @@
-let loading = false
 let reportsData = []
-const serverUrl = 'http://109.67.30.38:3002'
-const select = document.querySelector('#urls')
-// const spinnerText = document.querySelector('#loading-spinner__text')
+const serverUrl = 'http://109.67.30.38:3002' 
 let selected = false
 
-// Spinner()
 function toggleDropdown() {
-  var dropdown = document.querySelector('.dropdown');
+  const dropdown = document.querySelector('.dropdown');
   dropdown.classList.toggle('select-open');
 }
 
-function setLoadingState(isLoading) {
-  if (isLoading) {
-    // Spinner.show();
-    // spinnerText.innerText = "Report is being made"
-  } else {
-    // spinnerText.innerText = ""
-    // Spinner.hide()
-  }
-  loading = isLoading
-}
-
-async function loadingStatus() {
-  try {
-    const response = await fetch(`${serverUrl}/`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
-    })
-    setLoadingState(response.status > 200)
-
-    console.log(response.status)
-  } catch (e) {
-    setLoadingState(true)
-    return true
-  }
-}
-
-async function getReport() {
-  await loadingStatus();
-  const response = await fetch(`${serverUrl}/reports`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' }
-  })
-
-  if (response.status === 404) return
-  reportsData = await response.json()
-
-  const { alive, reports } = reportsData
-
-  setLoadingState(alive);
-
-  const sortedReports = reports.sort((a, b) => a.lastUpdated > b.lastUpdated ? 1 : -1)
-  render(reports, sortedReports[0].webpageUrl)
-  select.innerHTML = ''
-  for (const report of sortedReports) {
-    select.innerHTML += `<option value="${report.webpageUrl}">${report.webpageUrl}</option>`
-  }
-
-  select.addEventListener('change', (e) => {
-    selected = true
-    render(reports, e.target.value)
-  })
-}
-
-function render(reports, url) {
-  let indicator;
-  let content = ''
-  const report = reports.filter(r => r.webpageUrl === url)[0]
-  content = `<h3 class="url">${report.webpageUrl}</h3>`
-  for (const issue of report.issuesFound) {
-    content += `
-          <div class="report-card">
-          <div class="card-header">
-            <h3>${issue['scannerName']}</h3>
-            <p> page url -> 
-            <a href="${issue['pageUrl']}"> ${issue['pageUrl']}</a>
-            </p>
-            <p>resolution -> <span>${issue['resolution']}</span></p>
-            </div>
-              <div class="card-screenshot">
-                <a>
-                  <img class="screenshot-img" src='${issue['img']}'></img>
-                </a>
-              </div>
-            </div>`
-  }
-  let dots = '';
-  let numDots = 0;
-
-  const interval = setInterval(() => {
-    numDots = (numDots + 1) % 4;
-    dots = '.'.repeat(numDots);
-    const button = document.getElementById('download-btn');
-    if (button) {
-      button.innerHTML = `Loading${dots}`;
-    }
-  }, 500);
-  if (loading) {
-    indicator = '<button id="download-btn" style="background-color:#999;">Loading</button><br/>'
-  }
-  else if (report.issuesFound.length === 0) {
-    indicator = '<button id="download-btn" style="background-color: red;">No Issues found</button><br/>'
-    clearInterval(interval)
-  }
-  else {
-    indicator = '<button id="download-btn" style="background-color:#1f8151;" onclick="downloadExcel()">Download Excel</button><br/>'
-    clearInterval(interval)
-
-  }
-
-  document.getElementById('content').innerHTML = indicator + content
-  // Select screenshot images and add event listeners
-  const screenshotImgs = document.querySelectorAll('.screenshot-img');
-  screenshotImgs.forEach((screenshotImg) => {
-    screenshotImg.addEventListener('mousemove', handleMouseMove);
-  });
-  document.querySelector(".url").style.padding = '10px'
-
-}
-getReport()
+getReport(serverUrl)
 
 setInterval(() => {
-    getReport()
-}, 20000)
-
-function handleMouseMove(event) {
-  const { left, top, width, height } = event.target.getBoundingClientRect();
-  const x = ((event.clientX - left) / width) * 150;
-  const y = ((event.clientY - top) / height) * 150;
-  event.target.style.transformOrigin = `${x}% ${y}%`;
-  event.target.style.transform = 'scale(1.5)';
-
-
-  // Reset the transform when the mouse moves away from the element
-  event.target.addEventListener('mouseleave', () => {
-    event.target.style.transform = 'none';
-  });
-}
+    getReport(serverUrl)
+}, 10000)
 
 async function ScanReport() {
-  const isLoading = await loadingStatus()
-  // await sleep(250)
-  console.log(isLoading)
-  if (isLoading) {
-    alert('Scanner is currently working! please wait for it to finish!')
-    return;
-  }
   selected = false
   // Get the URL input field value
   try {
@@ -162,47 +29,12 @@ async function ScanReport() {
     console.log(e)
   }
   urlInput.innerText = ''
-  await sleep(250)
-  getReport()
 }
 
 document.getElementById("scan").addEventListener("submit", (e) => {
   e.preventDefault()
   ScanReport()
 })
-
-async function sendEmail() {
-  try {
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const message = document.getElementById('message').value;
-
-    const response = await fetch('http://localhost:3003/send-email', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ name, email, message })
-    });
-
-    const data = await response.json();
-    console.log(data.message);
-
-    // Show success message to the user
-    alert('Email sent successfully!');
-  } catch (error) {
-    console.error(error);
-    // Show error message to the user
-    alert('Error sending email. Please try again later.');
-  }
-};
-
-if (window.location.pathname === '/contact.html') {
-  document.getElementById('contact-form').addEventListener('submit', (event) => {
-    event.preventDefault(); // prevent the form from submitting
-    sendEmail(); // call the sendEmail function to send the email
-  });
-}
 
 // Get the scan report container
 const scanReportContainer = document.querySelector('#report');
@@ -299,38 +131,9 @@ function sleep(ms) {
 }
 
 
-
-// Create a new div element for the magnifying glass
-const magnifyingGlass = document.createElement('div');
-magnifyingGlass.className = 'magnifying-glass';
-document.body.appendChild(magnifyingGlass);
-
-// Update the position of the magnifying glass based on the mouse movement
-document.addEventListener('mousemove', (event) => {
-  const x = event.clientX;
-  const y = event.clientY;
-
-  // Set the position of the magnifying glass
-  magnifyingGlass.style.left = x + 'px';
-  magnifyingGlass.style.top = y + 'px';
-});
-
-// Hide the default mouse cursor
-document.body.style.cursor = 'none';
-
-// Override cursor styles for specific elements
-const overrideCursorStyle = (element) => {
-  element.style.cursor = 'none';
-};
-
-// Apply the cursor style override to anchors, buttons, and other clickable elements
-const clickableElements = document.querySelectorAll('a, button, [role="button"]');
-clickableElements.forEach((element) => {
-  overrideCursorStyle(element);
-});
-
-// Apply the cursor style override to URLs
-const urlElements = document.querySelectorAll('[href]');
-urlElements.forEach((element) => {
-  overrideCursorStyle(element);
-});
+if (window.location.pathname === '/contact.html') {
+  document.getElementById('contact-form').addEventListener('submit', (event) => {
+    event.preventDefault(); // prevent the form from submitting
+    sendEmail(); // call the sendEmail function to send the email
+  });
+}

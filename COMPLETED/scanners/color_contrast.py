@@ -4,14 +4,14 @@ import numpy as np
 import re
 
 # for testing
-# import os
+import os
 
 # Constants
-MIN_CONTOUR_SIZE = 0
+MIN_CONTOUR_SIZE = 10
 MIN_ASPECT_RATIO = 1.2
 MAX_ASPECT_RATIO = 400
 MIN_SOLIDITY = 0.5
-COLOR_DIFF_THRESHOLD =60
+COLOR_DIFF_THRESHOLD = 60
 
 
 def detect_color_contrast(img_path, save_path):
@@ -32,7 +32,7 @@ def detect_color_contrast(img_path, save_path):
     img_copy = img.copy()
     found_issue = False
     # cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
-    # cv2.imwrite("contours.jpg_text_overlap", img_copy)
+    # cv2.imwrite("contours_color_contrast.jpg", img_copy)
     for contour in contours:
         if is_region_of_interest(contour):
             x, y, w, h = cv2.boundingRect(contour)
@@ -67,13 +67,12 @@ def preprocess_image(img):
 
 def threshold_image(gray):
     return cv2.adaptiveThreshold(
-        gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 13,5)
-
+        gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 13, 5)
 
 
 def apply_morphological_operations(thresh):
-    kernel_size =7
-    kernel_shape = cv2.MORPH_ELLIPSE
+    kernel_size = 7
+    kernel_shape = cv2.MORPH_RECT
     kernel = cv2.getStructuringElement(
         kernel_shape, (kernel_size, kernel_size))
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
@@ -85,7 +84,8 @@ def find_contours(thresh):
     contours, _ = cv2.findContours(
         thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     return contours
-    
+
+
 def is_region_of_interest(contour):
     x, y, w, h = cv2.boundingRect(contour)
     if w * h < MIN_CONTOUR_SIZE or not MIN_ASPECT_RATIO <= w / h <= MAX_ASPECT_RATIO:
@@ -126,14 +126,15 @@ def compute_color_difference(crop_img):
 #             # Call the detect_color_contrast function
 #             result = detect_color_contrast(img_path, save_path)
 #             if result:
-#                 print(f"COLOR_CONTRAST issue detected in {img_path}. Annotated image saved as {result}.")
+#                 print(
+#                     f"COLOR_CONTRAST issue detected in {img_path}. Annotated image saved as {result}.")
 #             else:
 #                 print(f"No COLOR_CONTRAST issue found in {img_path}.")
 
 
 # Test the directory
-# directory_path = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/x"
-# save_directory = "/home/gefen/Website-Eye-Robot/TESTS/REAL TESTS/COLOR_CONTRAST_ANNOTATED"
+# directory_path = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/COLOR_CONTRAST/"
+# save_directory = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/COLOR_CONTRAST_ANNOTATED"
 # test_directory(directory_path, save_directory)
 
 # Test image
