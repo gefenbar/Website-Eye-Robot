@@ -48,7 +48,7 @@ def getReports():
     reports = mongoDbClient.find('reports')
     alive = thread['main_thread'].is_alive()
     response = {'reports': reports, 'alive': alive}
-    return json.dumps(response)
+    return json_util.dumps(response)
 
 
 @app.route("/report", methods=["POST"])

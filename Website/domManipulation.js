@@ -1,7 +1,6 @@
 let loading
 
 function render(reports, url) {
-  let indicator;
   let content = ''
   const report = reports.filter(r => r.webpageUrl === url)[0]
   content = `<h3 class="url">${report.webpageUrl}</h3>`
@@ -32,29 +31,32 @@ function render(reports, url) {
     if (button && loading) {
       button.innerHTML = `Loading${dots}`;
     }
-  }, 400);
+  }, 500);
 
-
-  const scanButton = document.querySelector('.btn.btn-primary')
+  const downloadBtn = document.createElement('button')
+  downloadBtn.id = 'download-btn'
   if (loading) {
-    indicator = '<button id="download-btn" style="background-color:#999;">Loading</button><br/>'
-    scanButton.disabled = 'true'
-    scanButton.style.backgroundColor = 'gray'
+    downloadBtn.style.backgroundColor = '#999'
+    downloadBtn.innerText = 'Loading'
   }
   else if (report.issuesFound.length === 0) {
-    indicator = '<button id="download-btn" style="background-color: red;">No Issues found</button><br/>'
-    scanButton.disabled = 'true'
-    scanButton.style.backgroundColor = '#333333'
+    downloadBtn.style.backgroundColor = 'red'
+    downloadBtn.innerText = 'No Issues found'
     clearInterval(interval)
   }
   else {
-    indicator = '<button id="download-btn" style="background-color:#1f8151;" onclick="downloadExcel()">Download Excel</button><br/>'
-    scanButton.disabled = 'true'
-    scanButton.style.backgroundColor = '#333333'
+    downloadBtn.style.backgroundColor = '#1f8151'
+    downloadBtn.innerText = 'Download Excel'
+    downloadBtn.addEventListener('click', () => {
+      downloadExcel(report)
+    })
     clearInterval(interval)
-  }
 
-  document.getElementById('content').innerHTML = indicator + content
+  }
+  const contentElement = document.getElementById('content')
+  contentElement.innerHTML = content
+  contentElement.prepend(document.createElement('br'))
+  contentElement.prepend(downloadBtn)
   // Select screenshot images and add event listeners
   const screenshotImgs = document.querySelectorAll('.screenshot-img');
   screenshotImgs.forEach((screenshotImg) => {
@@ -76,4 +78,73 @@ function handleMouseMove(event) {
   event.target.addEventListener('mouseleave', () => {
     event.target.style.transform = 'none';
   });
+}
+
+
+function downloadExcel(report) {
+  if (!report) return;
+
+  const rows = [];
+  // console.log(reportData)
+  report?.issuesFound?.forEach((issue) => {
+    const name = issue.scannerName;
+    const pageUrl = issue.pageUrl;
+    const resolution = issue.resolution;
+    const image = issue.img;
+    rows.push({ 'Issue Name': name, 'Page URL': pageUrl, 'Resolution': resolution, 'Image': image });
+  });
+  // console.log(rows)
+
+  // Sort the rows array by the 'Issue Name' field
+  rows.sort((a, b) => a['Issue Name'].localeCompare(b['Issue Name']));
+  // Create a new workbook
+  const workbook = XLSX.utils.book_new();
+
+  // Convert the data to a worksheet
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  worksheet['!cols'] = [
+    { wch: 20 }, // "Issue Name" column
+    { wch: 50 }, // "Page URL" column
+    { wch: 20 }, // "Resolution" column
+    { wch: 50 }, // "Image" column
+  ];
+  // Add the worksheet to the workbook
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+
+  // Generate a binary string from the workbook
+  const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
+
+  // Create a Blob from the binary string
+  const blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
+
+  // Create a temporary link element
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'report.xlsx'; // Set the desired filename for the downloaded file
+
+  // Append the link to the document body
+  document.body.appendChild(link);
+
+  // Trigger the download by simulating a click on the link
+  link.click();
+
+  // Cleanup: remove the temporary link from the document
+  document.body.removeChild(link);
+}
+
+function enableScanBtn(enable) {
+  const scanBtn = document.querySelector('.btn.btn-primary')
+  if (loading) {
+    scanBtn.style.backgroundColor = 'black';
+    scanBtn.disabled = true;
+    scanBtn.style.cursor = 'default'
+  }
+  else if (enable) {
+    scanBtn.style.backgroundColor = '#4CAF50';
+    scanBtn.disabled = false;
+  } else {
+    scanBtn.style.backgroundColor = '#f44336';
+    scanBtn.disabled = true;
+    scanBtn.style.cursor = 'default'
+  }
 }
