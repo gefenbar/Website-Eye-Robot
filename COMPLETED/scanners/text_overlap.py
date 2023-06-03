@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import re
 import os
+import time
 
 # Constants
 MIN_CONTOUR_SIZE = 8
@@ -132,6 +133,8 @@ def contains_text(crop_img):
 def is_near_by(x1, y1, w1, h1, x2, y2, w2, h2):
     minimal_x = min(x1, x2)
     minimal_y = min(y1, y2)
+    if (minimal_x == x1 and x1+w1 >= x2+w2 and y1+h1 >= y2+h2) or (minimal_x == x2 and x1+w1 <= x2+w2 and y1+h1 <= y2+h2):
+        return False
     if (minimal_x == x1 and x1+w1 < x2) or (minimal_x == x2 and x2+w2 < x1) or (minimal_y == y1 and y1+h1 < y2) or (minimal_y == y2 and y2+h2 < y1):
         return False
     return True
@@ -174,8 +177,8 @@ def compute_overlap_ratio(x1, y1, w1, h1, x2, y2, w2, h2):
 #                 print(f"No TEXT_OVERLAP issue found in {img_path}.")
 
 
-# # Test the directory
-# directory_path = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/TEXT_OVERLAP/"
+# Test the directory
+# directory_path = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/CONTENT_OVERFLOW/"
 # save_directory = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/TEXT_OVERLAP_ANNOTATED"
 # test_directory(directory_path, save_directory)
 
