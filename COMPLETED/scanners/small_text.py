@@ -2,9 +2,9 @@ import pytesseract
 import cv2
 import numpy as np
 import re
-import os
-import time
-from timing import scanners_timing,time_convert
+# import os
+# import time
+# from timing import scanners_timing,time_convert
 
 def detect_small_text(img_path, save_path):
     img = load_image(img_path)

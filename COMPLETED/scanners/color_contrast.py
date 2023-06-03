@@ -4,9 +4,9 @@ import numpy as np
 import re
 
 # testing
-import time
-from timing import scanners_timing, time_convert
-import os
+# import time
+# from timing import scanners_timing, time_convert
+# import os
 
 # Constants
 MIN_CONTOUR_SIZE = 10

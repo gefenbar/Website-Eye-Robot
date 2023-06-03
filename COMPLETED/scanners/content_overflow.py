@@ -5,9 +5,9 @@ import re
 
 
 # testing
-import time
-from timing import scanners_timing, time_convert
-import os
+# import time
+# from timing import scanners_timing, time_convert
+# import os
 
 # Constants
 MIN_CONTOUR_SIZE = 5
@@ -130,35 +130,35 @@ def is_content_overflow(crop_img, contour):
 
 
 
-def test_directory(directory_path, save_directory):
-    # Create the save directory if it doesn't exist
-    if not os.path.exists(save_directory):
-        os.makedirs(save_directory)
-    times = 0
-    # Iterate over all files in the directory
-    for filename in os.listdir(directory_path):
-        if filename.endswith(".png") or filename.endswith(".jpg"):
-            start_time = time.time()
+# def test_directory(directory_path, save_directory):
+#     # Create the save directory if it doesn't exist
+#     if not os.path.exists(save_directory):
+#         os.makedirs(save_directory)
+#     times = 0
+#     # Iterate over all files in the directory
+#     for filename in os.listdir(directory_path):
+#         if filename.endswith(".png") or filename.endswith(".jpg"):
+#             start_time = time.time()
 
-            # Construct the full paths for the input image and save path
-            img_path = os.path.join(directory_path, filename)
-            save_path = os.path.join(save_directory, filename)
+#             # Construct the full paths for the input image and save path
+#             img_path = os.path.join(directory_path, filename)
+#             save_path = os.path.join(save_directory, filename)
 
-            # Call the detect_content_overflow function
-            result = detect_content_overflow(img_path, save_path)
-            if result:
-                print(
-                    f"CONTENT_OVERFLOW issue detected in {img_path}. Annotated image saved as {result}.")
-            else:
-                print(f"No CONTENT_OVERFLOW issue found in {img_path}.")
-            times += scanners_timing(start_time)
-    print("average time: " + time_convert(times/10))
+#             # Call the detect_content_overflow function
+#             result = detect_content_overflow(img_path, save_path)
+#             if result:
+#                 print(
+#                     f"CONTENT_OVERFLOW issue detected in {img_path}. Annotated image saved as {result}.")
+#             else:
+#                 print(f"No CONTENT_OVERFLOW issue found in {img_path}.")
+#             times += scanners_timing(start_time)
+#     print("average time: " + time_convert(times/10))
 
 
 # Test the directory
-directory_path = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/CONTENT_OVERFLOW/"
-save_directory = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/CONTENT_OVERFLOW_ANNOTATED"
-test_directory(directory_path, save_directory)
+# directory_path = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/CONTENT_OVERFLOW/"
+# save_directory = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/CONTENT_OVERFLOW_ANNOTATED"
+# test_directory(directory_path, save_directory)
 
 # detect_content_overflow(
 #     "9.jpg", "CONTENT_OVERFLOW.png")
