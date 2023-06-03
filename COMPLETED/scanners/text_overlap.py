@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import re
 import os
-import time
+import time 
 
 # Constants
 MIN_CONTOUR_SIZE = 8
@@ -133,7 +133,7 @@ def contains_text(crop_img):
 def is_near_by(x1, y1, w1, h1, x2, y2, w2, h2):
     minimal_x = min(x1, x2)
     minimal_y = min(y1, y2)
-    if (minimal_x == x1 and x1+w1 >= x2+w2 and y1+h1 >= y2+h2) or (minimal_x == x2 and x1+w1 <= x2+w2 and y1+h1 <= y2+h2):
+    if (minimal_x==x1 and x1+w1>=x2+w2 and y1+h1>=y2+h2) or (minimal_x==x2 and x1+w1<=x2+w2 and y1+h1<=y2+h2):
         return False
     if (minimal_x == x1 and x1+w1 < x2) or (minimal_x == x2 and x2+w2 < x1) or (minimal_y == y1 and y1+h1 < y2) or (minimal_y == y2 and y2+h2 < y1):
         return False
@@ -149,7 +149,7 @@ def compute_overlap_ratio(x1, y1, w1, h1, x2, y2, w2, h2):
     inter_w = min(x1+w1, x2+w2) - inter_x
     inter_h = min(y1+h1, y2+h2) - inter_y
 
-    if inter_w > 0 and inter_h > 0:
+    if inter_w > 0 and inter_h > 0 : 
         # print("intersection!!!")
         inter_area = inter_w * inter_h
         union_area = area1 + area2 - inter_area
