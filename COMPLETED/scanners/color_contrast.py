@@ -3,7 +3,9 @@ import cv2
 import numpy as np
 import re
 
-# for testing
+# testing
+import time
+from timing import scanners_timing, time_convert
 import os
 
 # Constants
@@ -115,10 +117,12 @@ def compute_color_difference(crop_img):
 #     # Create the save directory if it doesn't exist
 #     if not os.path.exists(save_directory):
 #         os.makedirs(save_directory)
-
+#     times=0
 #     # Iterate over all files in the directory
 #     for filename in os.listdir(directory_path):
 #         if filename.endswith(".png") or filename.endswith(".jpg"):
+#             start_time=time.time()
+
 #             # Construct the full paths for the input image and save path
 #             img_path = os.path.join(directory_path, filename)
 #             save_path = os.path.join(save_directory, filename)
@@ -130,7 +134,8 @@ def compute_color_difference(crop_img):
 #                     f"COLOR_CONTRAST issue detected in {img_path}. Annotated image saved as {result}.")
 #             else:
 #                 print(f"No COLOR_CONTRAST issue found in {img_path}.")
-
+#             times+= scanners_timing(start_time)
+#     print("average time: " + time_convert(times/10))
 
 # Test the directory
 # directory_path = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/COLOR_CONTRAST/"

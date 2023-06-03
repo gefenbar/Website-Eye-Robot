@@ -2,8 +2,10 @@ import pytesseract
 import cv2
 import numpy as np
 import re
+#testing
+import time
+from timing import scanners_timing, time_convert
 import os
-import time 
 
 # Constants
 MIN_CONTOUR_SIZE = 8
@@ -64,7 +66,6 @@ def detect_text_overlap(img_path, save_path):
                                                   (x1+w1, y1+h1), (0, 0, 255), 2)
                                     cv2.rectangle(img_copy, (x2, y2),
                                                   (x2+w2, y2+h2), (0, 0, 255), 2)
-
     if found_issue:
         print("Found TEXT_OVERLAP issue")
         cv2.imwrite(save_path, img_copy)
@@ -150,7 +151,6 @@ def compute_overlap_ratio(x1, y1, w1, h1, x2, y2, w2, h2):
     inter_h = min(y1+h1, y2+h2) - inter_y
 
     if inter_w > 0 and inter_h > 0 : 
-        # print("intersection!!!")
         inter_area = inter_w * inter_h
         union_area = area1 + area2 - inter_area
         overlap_ratio = inter_area / union_area
@@ -163,9 +163,10 @@ def compute_overlap_ratio(x1, y1, w1, h1, x2, y2, w2, h2):
 # def test_directory(directory_path, save_directory):
 #     if not os.path.exists(save_directory):
 #         os.makedirs(save_directory)
-
+#     times=0
 #     for filename in os.listdir(directory_path):
 #         if filename.endswith(".png") or filename.endswith(".jpg"):
+#             start_time=time.time()
 #             img_path = os.path.join(directory_path, filename)
 #             save_path = os.path.join(save_directory, filename)
 
@@ -175,10 +176,11 @@ def compute_overlap_ratio(x1, y1, w1, h1, x2, y2, w2, h2):
 #                     f"TEXT_OVERLAP issue detected in {img_path}. Annotated image saved as {result}.")
 #             else:
 #                 print(f"No TEXT_OVERLAP issue found in {img_path}.")
+#             times+= scanners_timing(start_time)
+#     print("average time: " + time_convert(times/4))    
 
-
-# Test the directory
-# directory_path = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/CONTENT_OVERFLOW/"
+# # Test the directory
+# directory_path = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/TEXT_OVERLAP/"
 # save_directory = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/TEXT_OVERLAP_ANNOTATED"
 # test_directory(directory_path, save_directory)
 
