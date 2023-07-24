@@ -9,6 +9,7 @@ import re
 
 # Constants
 MIN_CONTOUR_SIZE = 8
+MAX_CONTOUR_SIZE= 100000
 MIN_ASPECT_RATIO = 2
 MAX_ASPECT_RATIO = 100
 MIN_SOLIDITY = 0
@@ -107,7 +108,7 @@ def find_contours(thresh):
 def is_region_of_interest(contour):
     x, y, w, h = cv2.boundingRect(contour)
 
-    if w * h < MIN_CONTOUR_SIZE or w * h > 100000:  # Adjust the minimum size as per your requirement
+    if w * h < MIN_CONTOUR_SIZE or w * h > MAX_CONTOUR_SIZE: 
         return False
 
     aspect_ratio = w / h

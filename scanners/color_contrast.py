@@ -18,7 +18,7 @@ COLOR_DIFF_THRESHOLD = 60
 
 def detect_color_contrast(img_path, save_path):
     img = load_image(img_path)
-    # cv2.imwrite("original_image_color_constrast.jpg", img)
+    # cv2.imwrite("original_im age_color_constrast.jpg", img)
 
     gray = preprocess_image(img)
     # cv2.imwrite("grayscale_image_color_constrast.jpg", gray)

@@ -25,25 +25,25 @@ def detect_content_overflow(img_path, save_path):
     # cv2.imwrite("grayscale_image_content_overflow.jpg", gray)
 
     thresh = threshold_image(gray)
-    cv2.imwrite("thresholded_image_content_overflow.jpg", thresh)
+    # cv2.imwrite("thresholded_image_content_overflow.jpg", thresh)
 
     thresh = apply_morphological_operations(thresh)
-    cv2.imwrite("morphological_operations_content_overflow.jpg", thresh)
+    # cv2.imwrite("morphological_operations_content_overflow.jpg", thresh)
 
     contours = find_contours(thresh)
     img_copy = img.copy()
     found_issue = False
 
     # Visualize contours
-    cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
-    cv2.imwrite("contours_content_overflow.jpg", img_copy)
+    # cv2.drawContours(img_copy, contours, -1, (0, 255, 0), 2)
+    # cv2.imwrite("contours_content_overflow.jpg", img_copy)
     i = 0
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
         crop_img = img[y:y+h, x:x+w]
 
-        contour_img_path = f"/home/gefen/Website-Eye-Robot/contours/contour1_{i}.png"
-        cv2.imwrite(contour_img_path, crop_img)
+        # contour_img_path = f"/home/gefen/Website-Eye-Robot/contours/contour1_{i}.png"
+        # cv2.imwrite(contour_img_path, crop_img)
         i += 1
 
         if contains_text(crop_img) and is_content_overflow(crop_img, contour):
