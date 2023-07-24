@@ -16,6 +16,11 @@
         <div class="logo">
             <h1>WEBSITE EYE ROBOT</h1>
         </div>
+        <div class="burger">
+            <div class="line1"></div>
+            <div class="line2"></div>
+            <div class="line3"></div>
+        </div>
         <ul class="nav-links">
             <li><a href="index.html">Home</a></li>
             <li><a href="about.html">About</a></li>
@@ -29,16 +34,7 @@
         <p>Find Responsive Issues Automatically</p>
         <form id="scan">
             <div class="form-group">
-                <div>
-                    <input autocomplete="off" type="text" id="url-input" class="form-control" placeholder="Enter a URL to scan" >
-                    <div class="dropdown scan">
-                        <div id="urls-to-report">
-                            <p class="dropdown-option">https://eyerobotproject.editorx.io/demo3</p>
-                            <p class="dropdown-option">https://eyerobotproject.editorx.io/demo2</p>
-                            <p class="dropdown-option">https://eyerobotproject.editorx.io/demo1</p>
-                        </div>
-                    </div>
-                </div>
+                <input type="text" id="url-input" class="form-control" placeholder="Enter a URL to scan">
                 <button type="submit" class="btn btn-primary">Scan</button>
             </div>
         </form>
@@ -47,15 +43,8 @@
 
     </section>
     <section id="report">
-        <!-- <h2>Scan Report</h2> -->
-        <div class="dropdown">
-            <button type="button" class="dropdown-toggle" onclick="toggleDropdown()">My Reports</button>
-            <div id="urls">
-            </div>
-        </div>
-
-
-        <h3 id="url">&zwnj;</h3>
+        <h2>Scan Report</h2>
+        <h3 id="url"> &zwnj;</h3>
         <div id="content"></div>
     </section>
     <footer>
@@ -77,11 +66,8 @@
             </div>
         </div>
     </footer>
-    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
-    <script src="domManipulation.js"></script>
-    <script src="getFunctions.js"></script>
-    <script src="sendEmail.js"></script>
     <script src="script.js"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 </body>
 
-</html>
+</html> 
