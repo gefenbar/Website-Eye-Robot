@@ -51,7 +51,7 @@ def detect_small_text(img_path, save_path):
             if contains_text(zoomed_img):
                 found_issue = True
                 cv2.rectangle(img_copy, (x, y),
-                              (x+w+10, y+h+2), (0, 140, 255), 2) #orangex
+                              (x+w+10, y+h+2), (0, 140, 255), 2) #orange
 
     if found_issue:
         print("Found SMALL_TEXT issue")

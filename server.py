@@ -52,18 +52,40 @@ def get_report():
 
 @app.route("/report", methods=["POST"])
 def index():
-    if request.method == "POST":
-        input_url = request.json.get("url")
+        def main_task(url):
+            def process_image(img_path, resolution):       
+                nonlocal issue_found
+                for scanner_name, result_folder_name in scanner_folder_names.items():
+                    result_folder_path = os.path.join(
+                        base_path, result_folder_name)
+                    filename_prefix = f"{scanner_name}_"
+                    save_path = os.path.join(
+                        result_folder_path, filename_prefix + str(i) + "_" + filename)
 
-        # Delete existing folders and files if they exist
-        delete_existing_folders_and_files()
+                    if scanner_name == 'color_contrast':
+                        issue = detect_color_contrast(img_path, save_path)
+                    elif scanner_name == 'small_text':
+                        issue = detect_small_text(img_path, save_path)
+                    elif scanner_name == 'text_overlap':
+                        issue = detect_text_overlap(img_path, save_path)
+                    elif scanner_name == 'edge_overflow':
+                        issue = detect_edge_overflow(img_path, save_path)
+                    # elif scanner_name == 'content_overflow':
+                    #     issue = detect_content_overflow(
+                    #         img_path, save_path)
 
-        # Define the data variable as an empty dictionary
-        data = {}
-
-        def main_task(url, page_urls):
+                    if issue:
+                            print(f"page_urls.index(url)=>{page_urls.index(url)}")
+                            issue_found = True
+                            page_index = page_urls.index(url)
+                            report_cards.append({
+                                'name': scanner_name.replace('_', ' ').title(),
+                                'image': issue.replace('home/gefen/Website-Eye-Robot/', ''),
+                                'resolution': resolution,
+                                'page_url': page_urls[page_index]
+                            })
+            page_urls=[]
             resolutions = [(1920, 1080), (1366, 768), (375, 667)]
-
             driver = webdriver.Chrome()
             try:
                 # Open URL in web driver and add it to the page_urls list
@@ -85,7 +107,7 @@ def index():
                     folder_name = f"screenshots_{resolution[0]}x{resolution[1]}"
 
                     # Set window size to current resolution
-                    driver.set_window_size(*resolution)
+                    driver.set_window_size(*resolution) # * sign unpacking the resolution
 
                     while True:
                         # Get current page URL
@@ -97,6 +119,7 @@ def index():
                                 f"Skipping already visited page at {resolution}: {current_url}")
                             break
 
+                        page_urls.append(current_url)
                         # Add current page to visited pages at this resolution
                         visited_pages_resolution.add(current_url)
 
@@ -151,6 +174,7 @@ def index():
                                         and not href.lower().endswith(".pdf")
                                     ):
                                         driver.get(href)
+
                                 except StaleElementReferenceException:
                                     continue
                         except StaleElementReferenceException:
@@ -178,44 +202,6 @@ def index():
 
             report_cards = []
             issue_found = False
-
-           
-
-            def process_image(img_path, resolution):       
-                nonlocal issue_found
-                i = 0
-                for scanner_name, result_folder_name in scanner_folder_names.items():
-                    result_folder_path = os.path.join(
-                        base_path, result_folder_name)
-                    filename_prefix = f"{scanner_name}_"
-                    save_path = os.path.join(
-                        result_folder_path, filename_prefix + str(i) + "_" + filename)
-                    i += 1
-
-                    if scanner_name == 'color_contrast':
-                        issue = detect_color_contrast(
-                            img_path, save_path)
-                    elif scanner_name == 'small_text':
-                        issue = detect_small_text(img_path, save_path)
-                    elif scanner_name == 'text_overlap':
-                        issue = detect_text_overlap(
-                            img_path, save_path)
-                    elif scanner_name == 'edge_overflow':
-                        issue = detect_edge_overflow(
-                            img_path, save_path)
-                    # elif scanner_name == 'content_overflow':
-                    #     issue = detect_content_overflow(
-                    #         img_path, save_path)
-
-                    if issue:
-                            issue_found = True
-                            page_index = page_urls.index(url)
-                            report_cards.append({
-                                'name': scanner_name.replace('_', ' ').title(),
-                                'image': issue.replace('home/gefen/Website-Eye-Robot/', ''),
-                                'resolution': resolution,
-                                'page_url': page_urls[page_index]
-                            })
 
             for folder_path in folder_paths:
                 resolution = folder_path.replace(
@@ -259,12 +245,18 @@ def index():
             with open('data.json', 'w') as f:
                 json.dump(data, f)
 
-        # Create a list to store the URLs of the pages visited
-        page_urls = []
-        main_task(input_url, page_urls)
-        return jsonify({"message": "Task started successfully."}), 200    
+                
+        if request.method == "POST":
+            input_url = request.json.get("url")
+            # Delete existing folders and files if they exist
+            delete_existing_folders_and_files()
+            # Define the data variable as an empty dictionary
+            data = {}
+            # Create a list to store the URLs of the pages visited
+            main_task(input_url)
+            return jsonify({"message": "Task started successfully."}), 200    
 
-
+# Delete folders and screenshots
 def delete_existing_folders_and_files():
     folders = [
         'screenshots_1920x1080',
@@ -284,7 +276,7 @@ def delete_existing_folders_and_files():
     if os.path.exists('data.json'):
         os.remove('data.json')
 
-# Helper function: Create directories for screenshots
+# Create folders for screenshots
 def create_directories_for_screenshots():
     resolutions = ['1920x1080', '1366x768', '375x667']
 
@@ -292,7 +284,7 @@ def create_directories_for_screenshots():
         folder_name = f"screenshots_{resolution}"
         os.makedirs(folder_name, exist_ok=True)
 
-# Helper function: Create parent folders for scanners' results
+# Create folders for scanners results
 def create_parent_folders_for_scanners(base_path, scanner_folder_names):
     for folder_name in scanner_folder_names.values():
         folder_path = os.path.join(base_path, folder_name)
