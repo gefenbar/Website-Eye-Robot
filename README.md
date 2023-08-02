@@ -37,7 +37,7 @@
   <li>Navigate to the project folder: <code>cd website-eye-robot</code></li>
   <li>Install the required packages: <code>pip install -r requirements.txt</code></li>
   <li>Run the flask server: <code>flask run</code></li>
-  <li>Open your browser and go to <code>http://localhost:3014</code></li>
+  <li>Open your browser and go to <code>http://localhost:3002</code></li>
 </ol>
 
 <h2>Usage 🚀</h2>
