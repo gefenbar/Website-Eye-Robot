@@ -46,7 +46,7 @@ def detect_color_contrast(img_path, save_path):
                 if color_diff < COLOR_DIFF_THRESHOLD:
                     found_issue = True
                     cv2.rectangle(img_copy, (x, y),
-                                  (x+w, y+h), (255, 102, 0), 2)
+                                  (x+w, y+h), (255, 102, 0), 2) #blue
     if found_issue:
         print("Found COLOR_CONTRAST issue")
         cv2.imwrite(save_path, img_copy)

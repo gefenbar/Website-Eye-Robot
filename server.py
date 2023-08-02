@@ -26,7 +26,7 @@ app = Flask(__name__)
 CORS(app)
 
 def load_model(weights="SSD300_VGG16_Weights.DEFAULT"):
-    # Load the pre-trained SSD model with a ResNet backbone
+    # Load the pre-trained SSD model with a VGG16 backbone
     model = torchvision.models.detection.ssd300_vgg16(weights=weights)
     model.eval()
     return model
@@ -69,17 +69,19 @@ def index():
                 # Open URL in web driver and add it to the page_urls list
                 driver.get(url)
                 page_urls.append(url)
+                # Wait for the page to finish loading completely
                 WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located((By.TAG_NAME, "body"))
                 )
 
                 visited_pages = set()
+                # Create directories for screenshots at different resolutions.
                 create_directories_for_screenshots()
 
                 for i, resolution in enumerate(resolutions):
                     visited_pages_resolution = set()  # keep track of visited pages for this resolution
 
-                    # Create folder name based on resolution
+                    # Focus on folder name based on resolution
                     folder_name = f"screenshots_{resolution[0]}x{resolution[1]}"
 
                     # Set window size to current resolution
@@ -151,7 +153,6 @@ def index():
                                         driver.get(href)
                                 except StaleElementReferenceException:
                                     continue
-
                         except StaleElementReferenceException:
                             continue
 
@@ -283,7 +284,7 @@ def delete_existing_folders_and_files():
     if os.path.exists('data.json'):
         os.remove('data.json')
 
-
+# Helper function: Create directories for screenshots
 def create_directories_for_screenshots():
     resolutions = ['1920x1080', '1366x768', '375x667']
 
@@ -291,7 +292,7 @@ def create_directories_for_screenshots():
         folder_name = f"screenshots_{resolution}"
         os.makedirs(folder_name, exist_ok=True)
 
-
+# Helper function: Create parent folders for scanners' results
 def create_parent_folders_for_scanners(base_path, scanner_folder_names):
     for folder_name in scanner_folder_names.values():
         folder_path = os.path.join(base_path, folder_name)
@@ -299,5 +300,4 @@ def create_parent_folders_for_scanners(base_path, scanner_folder_names):
 
 
 if __name__ == '__main__':
-    # delete_existing_folders_and_files()
     app.run(port=3002)

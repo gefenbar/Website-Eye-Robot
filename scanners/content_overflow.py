@@ -48,7 +48,7 @@ def detect_content_overflow(img_path, save_path):
 
         if contains_text(crop_img) and is_content_overflow(crop_img, contour):
             found_issue = True
-            cv2.rectangle(img_copy, (x, y), (x+w, y+h), (255, 0, 0), 2)
+            cv2.rectangle(img_copy, (x, y), (x+w, y+h), (128, 0, 128), 2) #purple
 
     if found_issue:
         print("Found CONTENT_OVERFLOW issue")

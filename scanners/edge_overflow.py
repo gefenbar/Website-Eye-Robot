@@ -46,7 +46,7 @@ def detect_edge_overflow(img_path, save_path):
             if contains_text(crop_img):
                 found_issue = True
                 cv2.rectangle(img_copy, (x, y),
-                              (x+w, y+h), (255, 102, 0), 2)
+                              (x+w, y+h), (0, 128, 0), 2) #green
 
     if found_issue:
         print("Found EDGE_OVERFLOW issue")

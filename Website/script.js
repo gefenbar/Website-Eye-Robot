@@ -38,8 +38,6 @@ function handleMouseMove(event) {
   const y = ((event.clientY - top) / height) * 150;
   event.target.style.transformOrigin = `${x}% ${y}%`;
   event.target.style.transform = 'scale(1.5)';
-
-
   // Reset the transform when the mouse moves away from the element
   event.target.addEventListener('mouseleave', () => {
     event.target.style.transform = 'none';
