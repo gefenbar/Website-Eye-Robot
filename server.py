@@ -146,7 +146,6 @@ def index():
                                         folder_name,
                                         f"{i}_{len(visited_pages_resolution)}_{scroll_position}.png",
                                     )
-                                # print(path)
                                 driver.save_screenshot(path)
                                 path_to_url_dict[os.path.join('/home/gefen/Website-Eye-Robot/',path)]=current_url
 
@@ -156,7 +155,6 @@ def index():
                                     f"window.scrollTo(0, {scroll_position})"
                                 )
                                 time.sleep(1.2)
-                            # print(path_to/_url_dict)
                             links = driver.find_elements(By.TAG_NAME, "a")
 
                             for link in links:
