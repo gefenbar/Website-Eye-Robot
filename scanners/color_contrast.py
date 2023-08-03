@@ -107,9 +107,9 @@ def contains_text(crop_img):
 
 
 def compute_color_difference(crop_img):
-    mean_color = np.mean(crop_img, axis=(0, 1))
-    peak_color = np.max(crop_img, axis=(0, 1))
-    color_diff = np.linalg.norm(mean_color - peak_color)
+    mean_color = np.mean(crop_img, axis=(0, 1)) # average color
+    peak_color = np.max(crop_img, axis=(0, 1)) # strongest color
+    color_diff = np.linalg.norm(mean_color - peak_color) # the distance from the average to the strongest  
     return color_diff
 
 

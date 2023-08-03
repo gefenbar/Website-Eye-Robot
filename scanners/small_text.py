@@ -5,12 +5,13 @@ import re
 # import os
 # import time
 # from timing import scanners_timing,time_convert
-
+MIN_HEIGHT =1
+MAX_HEIGHT = 7
 def detect_small_text(img_path, save_path):
     img = load_image(img_path)
     # cv2.imwrite("original_image_small_text.jpg", img)
     height, width = img.shape[:2]
-    min_height, max_height = thresh_min_max_height(height)
+
     gray = preprocess_image(img)
     # cv2.imwrite("grayscale_image_small_text.jpg", gray)
 
@@ -32,7 +33,7 @@ def detect_small_text(img_path, save_path):
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
 
-        if min_height <= h <= max_height and is_full_text_contour(contour, width, height):
+        if MIN_HEIGHT <= h <= MAX_HEIGHT and is_full_text_contour(contour, width, height):
             # Exclude cropped text
             if is_cropped_text(contour, width, height):
                 continue
@@ -64,12 +65,6 @@ def detect_small_text(img_path, save_path):
 
 def load_image(img_path):
     return cv2.imread(img_path)
-
-
-def thresh_min_max_height(height):
-    min_height =1
-    max_height = 7
-    return min_height, max_height
 
 
 def preprocess_image(img):
@@ -108,7 +103,7 @@ def is_full_text_contour(contour, image_width, image_height):
     # Check if contour is likely to contain full text
     x, y, w, h = cv2.boundingRect(contour)
     aspect_ratio = w / float(h)
-    if aspect_ratio > 0.1 and aspect_ratio < 1.1 and y > 0.1 * image_height and w > 0.00275*image_width:
+    if aspect_ratio > 0.1 and aspect_ratio < 1.1  and w > 0.00275*image_width:
         return True
     return False
 
@@ -172,4 +167,4 @@ def zoom_in(img, zoom_factor):
 # save_directory = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/SMALL_TEXT_ANNOTATED"
 # test_directory(directory_path, save_directory)
 # Test image
-# detect_small_text("4.jpg", "SMALL_TEXT.png")
+# detect_small_text("/home/gefen/Website-Eye-Robot/test images/REAL TESTS/SMALL_TEXT/8.png", "SMALL_TEXT.png")

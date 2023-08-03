@@ -55,6 +55,7 @@ def index():
         def main_task(url):
             def process_image(img_path, resolution):       
                 nonlocal issue_found
+                nonlocal path_to_url_dict
                 for scanner_name, result_folder_name in scanner_folder_names.items():
                     result_folder_path = os.path.join(
                         base_path, result_folder_name)
@@ -75,22 +76,19 @@ def index():
                     #         img_path, save_path)
 
                     if issue:
-                            print(f"page_urls.index(url)=>{page_urls.index(url)}")
                             issue_found = True
-                            page_index = page_urls.index(url)
                             report_cards.append({
                                 'name': scanner_name.replace('_', ' ').title(),
                                 'image': issue.replace('home/gefen/Website-Eye-Robot/', ''),
                                 'resolution': resolution,
-                                'page_url': page_urls[page_index]
+                                'page_url':path_to_url_dict[img_path]
                             })
-            page_urls=[]
+            path_to_url_dict= {}                
             resolutions = [(1920, 1080), (1366, 768), (375, 667)]
             driver = webdriver.Chrome()
             try:
-                # Open URL in web driver and add it to the page_urls list
+                # Open URL in web driver a
                 driver.get(url)
-                page_urls.append(url)
                 # Wait for the page to finish loading completely
                 WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located((By.TAG_NAME, "body"))
@@ -119,7 +117,6 @@ def index():
                                 f"Skipping already visited page at {resolution}: {current_url}")
                             break
 
-                        page_urls.append(current_url)
                         # Add current page to visited pages at this resolution
                         visited_pages_resolution.add(current_url)
 
@@ -145,22 +142,21 @@ def index():
 
                             # Capture screenshots of each section of the page
                             while scroll_position < page_height:
-                                driver.save_screenshot(
-                                    os.path.join(
+                                path=os.path.join(
                                         folder_name,
                                         f"{i}_{len(visited_pages_resolution)}_{scroll_position}.png",
                                     )
-                                )
-                                detect_objects(model,os.path.join(
-                                        folder_name,
-                                        f"{i}_{len(visited_pages_resolution)}_{scroll_position}.png",
-                                    ))
+                                # print(path)
+                                driver.save_screenshot(path)
+                                path_to_url_dict[os.path.join('/home/gefen/Website-Eye-Robot/',path)]=current_url
+
+                                detect_objects(model,path)
                                 scroll_position += section_height
                                 driver.execute_script(
                                     f"window.scrollTo(0, {scroll_position})"
                                 )
                                 time.sleep(1.2)
-
+                            # print(path_to/_url_dict)
                             links = driver.find_elements(By.TAG_NAME, "a")
 
                             for link in links:

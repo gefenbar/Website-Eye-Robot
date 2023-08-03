@@ -161,4 +161,5 @@ def is_content_overflow(crop_img, contour):
 # test_directory(directory_path, save_directory)
 
 # detect_content_overflow(
-#     "9.jpg", "CONTENT_OVERFLOW.png")
+    # "/home/gefen/Website-Eye-Robot/screenshots_375x667/2_2_0.png", "CONTENT_OVERFLOW.png")
+

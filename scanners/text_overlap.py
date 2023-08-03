@@ -12,7 +12,6 @@ MIN_CONTOUR_SIZE = 8
 MAX_CONTOUR_SIZE= 100000
 MIN_ASPECT_RATIO = 2
 MAX_ASPECT_RATIO = 100
-MIN_SOLIDITY = 0
 OVERLAP_THRESHOLD = 0.0000001
 
 
@@ -112,14 +111,14 @@ def is_region_of_interest(contour):
         return False
 
     aspect_ratio = w / h
-    if aspect_ratio < MIN_ASPECT_RATIO or aspect_ratio > MAX_ASPECT_RATIO:  # Adjust the aspect ratio range
+    if aspect_ratio < MIN_ASPECT_RATIO or aspect_ratio > MAX_ASPECT_RATIO:  
         return False
 
     area = cv2.contourArea(contour)
     hull = cv2.convexHull(contour)
     hull_area = cv2.contourArea(hull)
 
-    if hull_area == 0 or area / hull_area < MIN_SOLIDITY:  # Adjust the solidity threshold
+    if hull_area == 0 : 
         return False
 
     return True

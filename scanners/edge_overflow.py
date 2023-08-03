@@ -8,11 +8,9 @@ import re
 # import os
 
 # Constants
-MIN_CONTOUR_SIZE = 0
-MIN_ASPECT_RATIO = 0
+MIN_CONTOUR_SIZE = 1
+MIN_ASPECT_RATIO = 1
 MAX_ASPECT_RATIO = 300
-MIN_SOLIDITY = 0.3
-
 
 def detect_edge_overflow(img_path, save_path):
     img = load_image(img_path)
@@ -40,12 +38,13 @@ def detect_edge_overflow(img_path, save_path):
     # cv2.imwrite("contours_edge_overflow.jpg", img_copy)
     for contour in contours:
         if is_region_of_interest(contour, img):
-            x, y, w, h = cv2.boundingRect(contour)
-            crop_img = img[y:y+h, x:x+w]
+            if is_edge_overflow(contour,img):
+                x, y, w, h = cv2.boundingRect(contour)
+                crop_img = img[y:y+h, x:x+w]
 
-            if contains_text(crop_img):
-                found_issue = True
-                cv2.rectangle(img_copy, (x, y),
+                if contains_text(crop_img):
+                    found_issue = True
+                    cv2.rectangle(img_copy, (x, y),
                               (x+w, y+h), (0, 128, 0), 2) #green
 
     if found_issue:
@@ -99,8 +98,11 @@ def is_region_of_interest(contour, img):
     x, y, w, h = cv2.boundingRect(contour)
     if w * h < MIN_CONTOUR_SIZE or not MIN_ASPECT_RATIO <= w / h <= MAX_ASPECT_RATIO:
         return False
+    return True
 
-    edge_threshold = min(img.shape[1], img.shape[0]) * 0.00000001
+def is_edge_overflow(contour, img):
+    x, y, w, h = cv2.boundingRect(contour)
+    edge_threshold = min(img.shape[1], img.shape[0]) * 0.01
     # Only check the left and right edges
     if x <= edge_threshold or x + w >= img.shape[1] - edge_threshold:
         return True
@@ -144,4 +146,4 @@ def contains_text(crop_img):
 # save_directory = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/EDGE_OVERFLOW_ANNOTATED"
 # test_directory(directory_path, save_directory)
 # detect_edge_overflow(
-#     "/home/gefen/Website-Eye-Robot/375x667/https:__eyerobotproject.editorx.io_demo1_blank-1~600.png", "TEXT_NEAR_EDGES.png")
+    # "test images/REAL TESTS/EDGE_OVERFLOW/5.png", "TEXT_NEAR_EDGES.png")
