@@ -167,4 +167,4 @@ def zoom_in(img, zoom_factor):
 # save_directory = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/SMALL_TEXT_ANNOTATED"
 # test_directory(directory_path, save_directory)
 # Test image
-detect_small_text("/home/gefen/Website-Eye-Robot/screenshots_1366x768/1_2_614.png", "SMALL_TEXT.png")
+# detect_small_text("/home/gefen/Website-Eye-Robot/screenshots_1366x768/1_2_614.png", "SMALL_TEXT.png")
