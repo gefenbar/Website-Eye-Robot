@@ -13,8 +13,8 @@ import re
 MIN_CONTOUR_SIZE = 5
 MIN_ASPECT_RATIO = 1
 MAX_ASPECT_RATIO = 300
-MIN_SOLIDITY = 0.5
-OVERFLOW_THRESHOLD = 1.8 # change require
+MIN_SOLIDITY = 0.3
+OVERFLOW_THRESHOLD = 0.2
 
 
 def detect_content_overflow(img_path, save_path):
@@ -112,22 +112,26 @@ def contains_text(crop_img):
 
 
 def is_content_overflow(crop_img, contour):
-    # Convert the image to grayscale
-    gray = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
-
-    # Calculate the percentage of white pixels in the contour
+    # Convert the cropped image to grayscale
+    crop_img_gray = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
+    
+    # Perform OCR to get the text from the cropped image
+    text = pytesseract.image_to_string(crop_img_gray, config='--psm 6 --oem 1')
+    
+    # Calculate the area of the contour
     contour_area = cv2.contourArea(contour)
-    _, thresholded = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY)
-    white_pixel_count = cv2.countNonZero(thresholded)
-    white_pixel_percentage = white_pixel_count / contour_area
-
-    # Check if the white pixel percentage exceeds the overflow threshold
-    if white_pixel_percentage > OVERFLOW_THRESHOLD:
+    
+    # Calculate the area covered by the detected text
+    text_area = len(text) * 10  # Approximating text area based on the text length 
+    
+    # Determine the overflow threshold based on the contour area
+    overflow_threshold = contour_area * OVERFLOW_THRESHOLD
+    
+    # Check if the text area exceeds the overflow threshold
+    if text_area > overflow_threshold:
         return True
     else:
         return False
-
-
 
 
 # def test_directory(directory_path, save_directory):

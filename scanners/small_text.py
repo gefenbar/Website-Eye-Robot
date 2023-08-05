@@ -103,7 +103,7 @@ def is_full_text_contour(contour, image_width, image_height):
     # Check if contour is likely to contain full text
     x, y, w, h = cv2.boundingRect(contour)
     aspect_ratio = w / float(h)
-    if aspect_ratio > 0.1 and aspect_ratio < 1.1  and w > 0.00275*image_width:
+    if aspect_ratio > 0.1 and aspect_ratio < 1.1  and w > 0.002*image_width:
         return True
     return False
 
@@ -111,7 +111,7 @@ def is_full_text_contour(contour, image_width, image_height):
 def is_cropped_text(contour, image_width, image_height):
     # Check if contour is too close to the image boundaries, indicating cropped text
     x, y, w, h = cv2.boundingRect(contour)
-    boundary_threshold = 0.45
+    boundary_threshold = 0.002
     if x < boundary_threshold * image_width or (x + w) > (1 - boundary_threshold) * image_width:
         return True
     return False
@@ -167,4 +167,4 @@ def zoom_in(img, zoom_factor):
 # save_directory = "/home/gefen/Website-Eye-Robot/tests/REAL TESTS/SMALL_TEXT_ANNOTATED"
 # test_directory(directory_path, save_directory)
 # Test image
-# detect_small_text("/home/gefen/Website-Eye-Robot/test images/REAL TESTS/SMALL_TEXT/8.png", "SMALL_TEXT.png")
+detect_small_text("/home/gefen/Website-Eye-Robot/screenshots_1366x768/1_2_614.png", "SMALL_TEXT.png")
